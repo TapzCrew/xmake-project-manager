@@ -2,6 +2,8 @@
 
 #include <XMakeProjectConstant.hpp>
 
+#include <project/XMakeProjectImporter.hpp>
+
 #include <settings/tools/kitaspect/XMakeToolKitAspect.hpp>
 
 #include <projectexplorer/deploymentdata.h>
@@ -36,7 +38,10 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProject::projectImporter() const -> ProjectExplorer::ProjectImporter * {
-        return nullptr;
+        if (!m_project_importer)
+            m_project_importer = std::make_unique<XMakeProjectImporter>(projectFilePath());
+
+        return m_project_importer.get();
     }
 
     ////////////////////////////////////////////////////

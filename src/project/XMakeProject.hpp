@@ -11,6 +11,7 @@
 #include <type_traits>
 
 namespace XMakeProjectManager::Internal {
+    class XMakeProjectImporter;
     class XMakeProject final: public ProjectExplorer::Project {
         Q_OBJECT
 
@@ -32,5 +33,7 @@ namespace XMakeProjectManager::Internal {
         ProjectExplorer::MakeInstallCommand
             makeInstallCommand(const ProjectExplorer::Target *target,
                                const QString &install_root) override;
+
+        mutable std::unique_ptr<XMakeProjectImporter> m_project_importer;
     };
 } // namespace XMakeProjectManager::Internal
