@@ -1,5 +1,5 @@
 #include "ToolsSettingsWidget.hpp"
-#include "ui_toolssettingswidget.h"
+#include "ui_ToolsSettingsWidget.h"
 
 #include <XMakeProjectConstant.hpp>
 
