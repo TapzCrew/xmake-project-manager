@@ -1,0 +1,14 @@
+{
+    "Name": "XMakeProjectManager",
+    "Version": "0.0.1",
+    "CompatVersion": "0.0.1",
+    "Vendor": "TapzCrew",
+    "Copyright": "(C) TapzCrew",
+    "Experimental" : true,
+    "License": [ "GNU General Public License Usage",
+                  "This plugin is under the terms of the GNU General Public License version 3 as published by the Free Software Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT included in the packaging of this plugin. Please review the following information to ensure the GNU General Public License requirements will be met: https://www.gnu.org/licenses/gpl-3.0.html."
+    ],
+    "Category": "Build Systems",
+    "Description": "XMake support",
+    $$dependencyList
+}
