@@ -32,7 +32,7 @@ namespace XMakeProjectManager::Internal {
         void removeXMakeTool();
         void currentXMakeToolChanged(const QModelIndex &new_current);
 
-        std::unique_ptr<Ui::ToolsSettingsWidget> m_ui = nullptr;
+        std::unique_ptr<Ui::ToolsSettingsWidget> m_ui;
         ToolsModel m_model;
         ToolItemSettings *m_item_settings = nullptr;
         ToolTreeItem *m_current_item      = nullptr;

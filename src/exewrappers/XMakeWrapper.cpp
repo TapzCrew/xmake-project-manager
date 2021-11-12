@@ -1,12 +1,8 @@
-#pragma once
-
 #include "XMakeWrapper.hpp"
 
 #include <XMakeProjectConstant.hpp>
 
 #include <utils/qtcprocess.h>
-
-#include <vcruntime_typeinfo.h>
 
 #include <QUuid>
 

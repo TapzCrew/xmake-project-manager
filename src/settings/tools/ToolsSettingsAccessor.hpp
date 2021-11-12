@@ -16,7 +16,7 @@ namespace XMakeProjectManager::Internal {
         ToolsSettingsAccessor &operator=(ToolsSettingsAccessor &&) = delete;
         ToolsSettingsAccessor &operator=(const ToolsSettingsAccessor &) = delete;
 
-        void saveXMakeTools(std::span<const XMakeTools::XMakeWrapperPtr> tools, QWidget *parent);
+        void saveXMakeTools(const std::vector<XMakeTools::XMakeWrapperPtr> &tools, QWidget *parent);
         std::vector<XMakeTools::XMakeWrapperPtr> loadXMakeTools(QWidget *parent);
     };
 } // namespace XMakeProjectManager::Internal

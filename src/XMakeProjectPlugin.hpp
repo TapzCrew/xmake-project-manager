@@ -4,8 +4,6 @@
 
 #include <extensionsystem/iplugin.h>
 
-#include <Pimpl.hpp>
-
 namespace XMakeProjectManager::Internal {
     class XMakeProjectPlugin final: public ExtensionSystem::IPlugin {
         Q_OBJECT
@@ -26,6 +24,6 @@ namespace XMakeProjectManager::Internal {
 
         bool initialize(const QStringList &arguments, QString *error_message) override;
 
-        Pimpl<XMakeProjectPluginPrivate> m_pimpl = nullptr;
+        std::unique_ptr<XMakeProjectPluginPrivate> m_pimpl;
     };
 } // namespace XMakeProjectManager::Internal

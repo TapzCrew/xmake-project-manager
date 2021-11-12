@@ -5,7 +5,7 @@
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    inline auto XMakeTools::tools() noexcept -> std::span<const XMakeWrapperPtr> {
+    inline auto XMakeTools::tools() noexcept -> const std::vector<XMakeWrapperPtr> & {
         return instance().m_tools;
     }
 

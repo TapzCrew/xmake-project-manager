@@ -39,8 +39,9 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto ToolsSettingsAccessor::saveXMakeTools(std::span<const XMakeTools::XMakeWrapperPtr> tools,
-                                               QWidget *parent) -> void {
+    auto
+        ToolsSettingsAccessor::saveXMakeTools(const std::vector<XMakeTools::XMakeWrapperPtr> &tools,
+                                              QWidget *parent) -> void {
         auto data = QVariantMap {};
 
         auto entry_count = 0u;

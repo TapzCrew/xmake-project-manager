@@ -3,6 +3,7 @@
 #include <utils/id.h>
 #include <utils/optional.h>
 
+#include <QObject>
 #include <QString>
 #include <QWidget>
 

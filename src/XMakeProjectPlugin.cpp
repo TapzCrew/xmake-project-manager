@@ -26,7 +26,7 @@ namespace XMakeProjectManager::Internal {
                     this,
                     &XMakeProjectPluginPrivate::saveAll);
         }
-        ~XMakeProjectPluginPrivate() = default;
+        ~XMakeProjectPluginPrivate() override = default;
 
         XMakeProjectPluginPrivate(XMakeProjectPluginPrivate &&)      = delete;
         XMakeProjectPluginPrivate(const XMakeProjectPluginPrivate &) = delete;
@@ -59,7 +59,7 @@ namespace XMakeProjectManager::Internal {
                                         [[maybe_unused]] QString *error_messages)
 
         -> bool {
-        m_pimpl = Pimpl<XMakeProjectPluginPrivate> {};
+        m_pimpl = std::make_unique<XMakeProjectPluginPrivate>();
 
         ProjectExplorer::ProjectManager::registerProjectType<XMakeProject>(
             QLatin1String { Constants::Project::MIMETYPE });

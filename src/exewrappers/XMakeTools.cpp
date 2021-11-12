@@ -8,8 +8,6 @@
 #include <utils/filepath.h>
 #include <utils/qtcassert.h>
 
-#include <ranges>
-
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -56,10 +54,11 @@ namespace XMakeProjectManager::Internal {
     auto XMakeTools::updateTool(Utils::Id id, QString name, Utils::FilePath exe) -> void {
         auto &self = instance();
 
-        auto item = std::ranges::find_if(self.m_tools,
-                                         [&id](const auto &tool) { return tool->id() == id; });
+        auto item = std::find_if(std::begin(self.m_tools),
+                                 std::end(self.m_tools),
+                                 [&id](const auto &tool) { return tool->id() == id; });
 
-        if (item != std::ranges::cend(self.m_tools)) {
+        if (item != std::cend(self.m_tools)) {
             (*item)->setExe(std::move(exe));
             (*item)->setName(std::move(name));
         } else
@@ -83,10 +82,11 @@ namespace XMakeProjectManager::Internal {
     auto XMakeTools::xmakeWrapper() -> XMakeWrapper * {
         auto &self = instance();
 
-        auto item = std::ranges::find_if(self.m_tools,
-                                         [](const auto &tool) { return tool->autoDetected(); });
+        auto item = std::find_if(std::begin(self.m_tools),
+                                 std::end(self.m_tools),
+                                 [](const auto &tool) { return tool->autoDetected(); });
 
-        if (item == std::ranges::cend(self.m_tools)) return nullptr;
+        if (item == std::cend(self.m_tools)) return nullptr;
 
         return item->get();
     }
@@ -96,10 +96,11 @@ namespace XMakeProjectManager::Internal {
     auto XMakeTools::xmakeWrapper(Utils::Id id) -> XMakeWrapper * {
         auto &self = instance();
 
-        auto item = std::ranges::find_if(self.m_tools,
-                                         [&id](const auto &tool) { return tool->id() == id; });
+        auto item = std::find_if(std::begin(self.m_tools),
+                                 std::end(self.m_tools),
+                                 [&id](const auto &tool) { return tool->id() == id; });
 
-        if (item == std::ranges::cend(self.m_tools)) return nullptr;
+        if (item == std::cend(self.m_tools)) return nullptr;
 
         return item->get();
     }

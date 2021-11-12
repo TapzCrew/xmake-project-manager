@@ -7,7 +7,7 @@
 #include <utils/id.h>
 
 #include <memory>
-#include <span>
+#include <vector>
 
 namespace XMakeProjectManager::Internal {
     class XMakeWrapper;
@@ -25,7 +25,7 @@ namespace XMakeProjectManager::Internal {
         static void updateTool(Utils::Id id, QString name, Utils::FilePath exe);
         static void removeTool(Utils::Id id);
 
-        static std::span<const XMakeWrapperPtr> tools() noexcept;
+        static const std::vector<XMakeWrapperPtr> &tools() noexcept;
 
         static XMakeWrapper *xmakeWrapper();
         static XMakeWrapper *xmakeWrapper(Utils::Id id);
