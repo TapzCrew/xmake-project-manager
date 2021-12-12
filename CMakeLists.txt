@@ -23,6 +23,11 @@ file(GLOB_RECURSE
     src/*.ui
 )
 
+file(GLOB_RECURSE
+    assets_files
+    assets/*.lua
+)
+
 add_qtc_plugin(${PROJECT_NAME}
     PLUGIN_DEPENDS
 	QtCreator::Core
@@ -42,10 +47,10 @@ add_qtc_plugin(${PROJECT_NAME}
     SOURCES
 	${source_files}
 
-	# ui files
 	${ui_files}
 
-	# resources
+	${assets_files}
+
 	resources.qrc
 )
 

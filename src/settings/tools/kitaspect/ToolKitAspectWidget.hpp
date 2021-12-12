@@ -19,13 +19,6 @@ namespace XMakeProjectManager::Internal {
         ToolKitAspectWidget(ProjectExplorer::Kit *kit,
                             const ProjectExplorer::KitAspect *ki,
                             ToolType type);
-        ~ToolKitAspectWidget() override;
-
-        ToolKitAspectWidget(ToolKitAspectWidget &&)      = delete;
-        ToolKitAspectWidget(const ToolKitAspectWidget &) = delete;
-
-        ToolKitAspectWidget &operator=(ToolKitAspectWidget &&) = delete;
-        ToolKitAspectWidget &operator=(const ToolKitAspectWidget &) = delete;
 
       private:
         void addTool(const XMakeWrapper &tool);

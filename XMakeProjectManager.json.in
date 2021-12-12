@@ -10,5 +10,6 @@
     ],
     "Category": "Build Systems",
     "Description": "XMake support",
-    $$dependencyList
+    $$dependencyList,
+    "Mimetypes": "<?xml version='1.0'?><mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'><mime-type type='text/x-xmake-project'><sub-class-of type='text/plain'/><comment>XMake project file</comment><glob pattern='xmake.lua'/></mime-type></mime-info>"
 }

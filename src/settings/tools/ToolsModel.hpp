@@ -15,13 +15,6 @@ namespace XMakeProjectManager::Internal {
 
       public:
         ToolsModel();
-        ~ToolsModel() override;
-
-        ToolsModel(ToolsModel &&)      = delete;
-        ToolsModel(const ToolsModel &) = delete;
-
-        ToolsModel &operator=(ToolsModel &&) = delete;
-        ToolsModel &operator=(const ToolsModel &) = delete;
 
         ToolTreeItem *xmakeToolTreeItem(const QModelIndex &index) const;
 

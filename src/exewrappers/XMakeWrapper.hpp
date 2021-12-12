@@ -21,7 +21,7 @@ namespace XMakeProjectManager::Internal {
     bool containsFiles(const QString &path, const FileT &file);
 
     template<typename FileT, typename... T>
-    bool containesFIles(const QString &path, const FileT &file, const T &...files);
+    bool containesFiles(const QString &path, const FileT &file, const T &...files);
 
     class Command {
       public:
@@ -30,11 +30,11 @@ namespace XMakeProjectManager::Internal {
                 const Utils::FilePath &workDir,
                 const QStringList &args);
 
-        Command(Command &&)      = delete;
-        Command(const Command &) = delete;
+        Command(Command &&);
+        Command &operator=(Command &&);
 
-        Command &operator=(Command &&) = delete;
-        Command &operator=(const Command &&) const = delete;
+        Command(const Command &);
+        Command &operator=(const Command &);
 
         const Utils::CommandLine &cmdLine() const;
 
@@ -87,6 +87,8 @@ namespace XMakeProjectManager::Internal {
         static QString toolName();
 
       private:
+        QString decompressIntrospectLuaIfNot();
+
         bool m_is_valid;
         bool m_autodetected;
         Utils::Id m_id;

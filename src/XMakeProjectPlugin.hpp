@@ -11,19 +11,15 @@ namespace XMakeProjectManager::Internal {
 
       public:
         XMakeProjectPlugin();
-        ~XMakeProjectPlugin() override;
-
-        XMakeProjectPlugin(XMakeProjectPlugin &&)      = delete;
-        XMakeProjectPlugin(const XMakeProjectPlugin &) = delete;
-
-        XMakeProjectPlugin &operator=(XMakeProjectPlugin &&) = delete;
-        XMakeProjectPlugin &operator=(const XMakeProjectPlugin &) = delete;
 
       private:
         class XMakeProjectPluginPrivate;
+        struct XMakeProjectPluginPrivateDeleter {
+            void operator()(XMakeProjectPluginPrivate *p);
+        };
 
         bool initialize(const QStringList &arguments, QString *error_message) override;
 
-        std::unique_ptr<XMakeProjectPluginPrivate> m_pimpl;
+        std::unique_ptr<XMakeProjectPluginPrivate, XMakeProjectPluginPrivateDeleter> m_pimpl;
     };
 } // namespace XMakeProjectManager::Internal

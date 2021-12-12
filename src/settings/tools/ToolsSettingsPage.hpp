@@ -8,12 +8,5 @@ namespace XMakeProjectManager::Internal {
 
       public:
         ToolsSettingsPage();
-        ~ToolsSettingsPage() override;
-
-        ToolsSettingsPage(ToolsSettingsPage &&)      = delete;
-        ToolsSettingsPage(const ToolsSettingsPage &) = delete;
-
-        ToolsSettingsPage &operator=(ToolsSettingsPage &&) = delete;
-        ToolsSettingsPage &operator=(const ToolsSettingsPage &) = delete;
     };
 } // namespace XMakeProjectManager::Internal

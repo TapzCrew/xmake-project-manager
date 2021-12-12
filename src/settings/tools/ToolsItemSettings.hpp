@@ -22,13 +22,6 @@ namespace XMakeProjectManager::Internal {
 
       public:
         explicit ToolItemSettings(QWidget *parent = nullptr);
-        ~ToolItemSettings() override;
-
-        ToolItemSettings(ToolItemSettings &&)      = delete;
-        ToolItemSettings(const ToolItemSettings &) = delete;
-
-        ToolItemSettings &operator=(ToolItemSettings &&) = delete;
-        ToolItemSettings &operator=(const ToolItemSettings &) = delete;
 
         void load(ToolTreeItem *item);
         void store();

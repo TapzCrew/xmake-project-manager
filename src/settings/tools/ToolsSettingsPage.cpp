@@ -13,8 +13,4 @@ namespace XMakeProjectManager::Internal {
         setCategory(Constants::SettingsPage::CATEGORY);
         setWidgetCreator([]() { return new ToolsSettingsWidget {}; });
     }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    ToolsSettingsPage::~ToolsSettingsPage() = default;
 } // namespace XMakeProjectManager::Internal

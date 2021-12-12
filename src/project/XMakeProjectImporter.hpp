@@ -18,13 +18,6 @@ namespace XMakeProjectManager::Internal {
     class XMakeProjectImporter final: public QtSupport::QtProjectImporter {
       public:
         explicit XMakeProjectImporter(const Utils::FilePath &path);
-        ~XMakeProjectImporter() override;
-
-        XMakeProjectImporter(XMakeProjectImporter &&)      = delete;
-        XMakeProjectImporter(const XMakeProjectImporter &) = delete;
-
-        XMakeProjectImporter &operator=(XMakeProjectImporter &&) = delete;
-        XMakeProjectImporter &operator=(const XMakeProjectImporter &) = delete;
 
         QStringList importCandidates() override;
 

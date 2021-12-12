@@ -4,5 +4,6 @@
         <file>icons/xmake_bw_logo@2x.png</file>
         <file>icons/xmake_logo.png</file>
         <file>icons/xmake_logo@2x.png</file>
+        <file>assets/introspect.lua</file>
     </qresource>
 </RCC>

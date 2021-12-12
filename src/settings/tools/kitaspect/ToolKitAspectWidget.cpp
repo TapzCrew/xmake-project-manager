@@ -44,10 +44,6 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    ToolKitAspectWidget::~ToolKitAspectWidget() = default;
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
     auto ToolKitAspectWidget::addTool(const XMakeWrapper &tool) -> void {
         if (isCompatible(tool)) m_tool_combo_box->addItem(tool.name(), tool.id().toSetting());
     }

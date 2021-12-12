@@ -9,13 +9,6 @@ namespace XMakeProjectManager::Internal {
         Q_DECLARE_TR_FUNCTIONS(XMakeProjectManager::Internal::Settings)
       public:
         Settings();
-        ~Settings() override;
-
-        Settings(Settings &&)      = delete;
-        Settings(const Settings &) = delete;
-
-        Settings &operator=(Settings &&) = delete;
-        Settings &operator=(const Settings &) = delete;
 
         static Settings *instance();
 

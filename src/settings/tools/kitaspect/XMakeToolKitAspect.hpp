@@ -14,13 +14,6 @@ namespace XMakeProjectManager::Internal {
 
       public:
         XMakeToolKitAspect();
-        ~XMakeToolKitAspect() override;
-
-        XMakeToolKitAspect(XMakeToolKitAspect &&)      = delete;
-        XMakeToolKitAspect(const XMakeToolKitAspect &) = delete;
-
-        XMakeToolKitAspect &operator=(XMakeToolKitAspect &&) = delete;
-        XMakeToolKitAspect &operator=(const XMakeToolKitAspect &) = delete;
 
         ProjectExplorer::Tasks validate(const ProjectExplorer::Kit *kit) const override;
 

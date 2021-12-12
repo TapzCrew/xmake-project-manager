@@ -12,13 +12,13 @@ namespace XMakeProjectManager::Internal {
       public:
         ToolTreeItem(QString name);
         ToolTreeItem(const XMakeWrapper &tool);
-        ~ToolTreeItem() override;
+        ~ToolTreeItem();
 
         ToolTreeItem(ToolTreeItem &&) = delete;
-        ToolTreeItem(const ToolTreeItem &);
-
         ToolTreeItem &operator=(ToolTreeItem &&) = delete;
-        ToolTreeItem &operator                   =(const ToolTreeItem &);
+
+        ToolTreeItem(const ToolTreeItem &);
+        ToolTreeItem &operator=(const ToolTreeItem &);
 
         QVariant data(int column, int role) const override;
 

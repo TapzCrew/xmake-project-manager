@@ -35,10 +35,6 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    ToolsSettingsAccessor::~ToolsSettingsAccessor() = default;
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
     auto
         ToolsSettingsAccessor::saveXMakeTools(const std::vector<XMakeTools::XMakeWrapperPtr> &tools,
                                               QWidget *parent) -> void {

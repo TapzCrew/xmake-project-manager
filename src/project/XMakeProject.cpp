@@ -2,12 +2,13 @@
 
 #include <XMakeProjectConstant.hpp>
 
-#include <project/XMakeProjectImporter.hpp>
-
 #include <settings/tools/kitaspect/XMakeToolKitAspect.hpp>
+
+#include <coreplugin/icontext.h>
 
 #include <projectexplorer/deploymentdata.h>
 #include <projectexplorer/project.h>
+#include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectimporter.h>
 #include <projectexplorer/task.h>
 
@@ -16,11 +17,14 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     XMakeProject::XMakeProject(Utils::FilePath path)
         : ProjectExplorer::Project { QLatin1String { Constants::Project::MIMETYPE },
-                                     std::move(path) } {}
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    XMakeProject::~XMakeProject() = default;
+                                     std::move(path) } {
+        setId(Constants::Project::ID);
+        setProjectLanguages(Core::Context(ProjectExplorer::Constants::CXX_LANGUAGE_ID,
+                                          ProjectExplorer::Constants::C_LANGUAGE_ID));
+        setDisplayName(projectDirectory().fileName());
+        setCanBuildProducts();
+        setHasMakeInstallEquivalent(true);
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////

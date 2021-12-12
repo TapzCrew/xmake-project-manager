@@ -17,13 +17,6 @@ namespace XMakeProjectManager::Internal {
 
       public:
         ToolsSettingsWidget();
-        ~ToolsSettingsWidget() override;
-
-        ToolsSettingsWidget(ToolsSettingsWidget &&)      = delete;
-        ToolsSettingsWidget(const ToolsSettingsWidget &) = delete;
-
-        ToolsSettingsWidget &operator=(ToolsSettingsWidget &&) = delete;
-        ToolsSettingsWidget &operator=(const ToolsSettingsWidget &) = delete;
 
       private:
         void apply() override;

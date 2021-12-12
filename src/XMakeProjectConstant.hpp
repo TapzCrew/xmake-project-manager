@@ -9,7 +9,7 @@ namespace XMakeProjectManager::Constants {
     } // namespace Icons
 
     namespace Project {
-        static constexpr auto MIMETYPE = "text/x-xmake";
+        static constexpr auto MIMETYPE = "text/x-xmake-project";
         static constexpr auto ID       = "XMakeProjectManager.XMakeProject";
     } // namespace Project
 
@@ -57,6 +57,7 @@ namespace XMakeProjectManager::Constants {
     static constexpr auto TOOL_NAME = "xmake";
     static constexpr auto TOOL_ID   = "XMakeProjectManager.XMakeKitInformation.XMake";
 
-    static constexpr auto XMAKE_TOOL_MANAGER  = "XMakeProjectManager.Tools";
-    static constexpr auto XMAKE_BUILD_STEP_ID = "XMakeProjectManager.BuildStep";
+    static constexpr auto XMAKE_TOOL_MANAGER    = "XMakeProjectManager.Tools";
+    static constexpr auto XMAKE_BUILD_STEP_ID   = "XMakeProjectManager.BuildStep";
+    static constexpr auto XMAKE_BUILD_CONFIG_ID = "XMakeProjectManager.BuildConfiguration";
 } // namespace XMakeProjectManager::Constants

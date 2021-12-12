@@ -10,20 +10,14 @@
 
 #include <type_traits>
 
+#include <project/XMakeProjectImporter.hpp>
+
 namespace XMakeProjectManager::Internal {
-    class XMakeProjectImporter;
     class XMakeProject final: public ProjectExplorer::Project {
         Q_OBJECT
 
       public:
         explicit XMakeProject(Utils::FilePath path);
-        ~XMakeProject() override;
-
-        XMakeProject(XMakeProject &&)      = delete;
-        XMakeProject(const XMakeProject &) = delete;
-
-        XMakeProject &operator=(XMakeProject &&) = delete;
-        XMakeProject &operator=(const XMakeProject &) = delete;
 
         ProjectExplorer::Tasks projectIssues(const ProjectExplorer::Kit *k) const override;
         ProjectExplorer::ProjectImporter *projectImporter() const override;

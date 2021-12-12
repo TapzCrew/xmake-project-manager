@@ -2,8 +2,11 @@
 
 #include <XMakeProjectConstant.hpp>
 
+#include <coreplugin/icore.h>
 #include <utils/qtcprocess.h>
 
+#include <QFile>
+#include <QFileInfo>
 #include <QUuid>
 
 namespace XMakeProjectManager::Internal {
@@ -75,14 +78,32 @@ namespace XMakeProjectManager::Internal {
                                  const QStringList &options) const -> Command {
         return { m_exe,
                  build_directory,
-                 options_cat("-P", source_directory.toString(), "f", options) };
+                 options_cat("f",
+                             "-P",
+                             source_directory.toString(),
+                             "-o",
+                             build_directory.toString(),
+                             options) };
     }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeWrapper::introspect(const Utils::FilePath &source_directory) -> Command {
+        auto path = decompressIntrospectLuaIfNot();
+
         return { m_exe,
                  source_directory,
-                 options_cat("-P", source_directory.toString(), "introspect") };
+                 options_cat("-P", source_directory.toString(), "lua", path) };
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto XMakeWrapper::decompressIntrospectLuaIfNot() -> QString {
+        auto path = Core::ICore::userResourcePath("xmake-introspect-files") / "introspect.lua";
+
+        if (QFileInfo::exists(path.toString()))
+            QFile::copy(":/assets/introspect.lua", path.toString());
+
+        return path.toString();
     }
 } // namespace XMakeProjectManager::Internal

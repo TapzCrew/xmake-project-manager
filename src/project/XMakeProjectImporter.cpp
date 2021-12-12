@@ -6,7 +6,7 @@
 #include <projectexplorer/kit.h>
 
 namespace {
-    static Q_LOGGING_CATEGORY(mInputLog, "qtc.xmake.import", QtWarningMsg)
+    static Q_LOGGING_CATEGORY(mInputLog, "qtc.xmake.import", QtDebugMsg)
 }
 
 namespace XMakeProjectManager::Internal {
@@ -14,10 +14,6 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     XMakeProjectImporter::XMakeProjectImporter(const Utils::FilePath &path)
         : QtSupport::QtProjectImporter { path } {}
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    XMakeProjectImporter::~XMakeProjectImporter() = default;
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
