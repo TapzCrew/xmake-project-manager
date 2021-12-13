@@ -46,6 +46,9 @@ namespace XMakeProjectManager::Internal {
 
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->configure(source_path, build_path, args);
 
+        m_pending_commands.enqueue(
+            std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
+
         return m_process.run(cmd, m_env, m_project_name, true);
     }
 
@@ -79,10 +82,7 @@ namespace XMakeProjectManager::Internal {
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path);
         qCDebug(xmake_project_parser_log) << "Starting parser " << cmd.toUserOutput();
 
-        return m_process.run(cmd,
-                             m_env,
-                             m_project_name,
-                             true);
+        return m_process.run(cmd, m_env, m_project_name, true);
     }
 
     ////////////////////////////////////////////////////
@@ -102,7 +102,9 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProjectParser::processFinished(int code, QProcess::ExitStatus status) -> void {
-        qCDebug(xmake_project_parser_log) << "Process " << m_process.currentCommand().toUserOutput() << "finished with code: " << code << " status: " << status << " output: " << m_process.stdOut();
+        qCDebug(xmake_project_parser_log) << "Process " << m_process.currentCommand().toUserOutput()
+                                          << "finished with code: " << code << " status: " << status
+                                          << " output: " << m_process.stdOut();
 
         if (code != 0 || status != QProcess::NormalExit) {
             const auto &data = m_process.stdOut();
@@ -116,7 +118,11 @@ namespace XMakeProjectManager::Internal {
             return;
         }
 
-        startParser();
+        if (m_pending_commands.isEmpty()) startParser();
+        else {
+            auto args = m_pending_commands.dequeue();
+            m_process.run(std::get<0>(args), m_env, m_project_name, std::get<1>(args));
+        }
     }
 
     ////////////////////////////////////////////////////
