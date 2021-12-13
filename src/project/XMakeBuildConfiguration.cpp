@@ -22,7 +22,7 @@ namespace XMakeProjectManager::Internal {
         setInitializer([this, target](const auto &info) {
             m_build_type = xmakeBuildType(info.typeName);
 
-            auto kit = target->kit();
+            auto *kit = target->kit();
             if (info.buildDirectory.isEmpty())
                 setBuildDirectory(shadowBuildDirectory(target->project()->projectFilePath(),
                                                        kit,
@@ -63,7 +63,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildConfiguration::build(const QString &target) -> void {
-        auto xmake_build_step = qobject_cast<XMakeBuildStep *>(
+        auto *xmake_build_step = qobject_cast<XMakeBuildStep *>(
             Utils::findOrDefault(buildSteps()->steps(), [](const auto *bs) {
                 return bs->id() == Constants::XMAKE_BUILD_STEP_ID;
             }));
@@ -99,7 +99,7 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    ProjectExplorer::BuildInfo createBuildInfo(XMakeBuildType type) {
+    auto createBuildInfo(XMakeBuildType type) -> ProjectExplorer::BuildInfo {
         auto b_info        = ProjectExplorer::BuildInfo {};
         b_info.typeName    = xmakeBuildTypeName(type);
         b_info.displayName = xmakeBuildTypeDisplayName(type);

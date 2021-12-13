@@ -26,15 +26,15 @@ namespace XMakeProjectManager::Internal {
         const auto global_context  = Core::Context { Core::Constants::C_GLOBAL };
         const auto project_context = Core::Context { Constants::Project::ID };
 
-        auto m_project =
+        auto *m_project =
             Core::ActionManager::actionContainer(ProjectExplorer::Constants::M_PROJECTCONTEXT);
-        auto m_subproject =
+        auto *m_subproject =
             Core::ActionManager::actionContainer(ProjectExplorer::Constants::M_SUBPROJECTCONTEXT);
 
         using CommandPtr = Core::Command *;
 
         {
-            auto command = Core::ActionManager::registerAction(&m_configure_action_menu,
+            auto *command = Core::ActionManager::registerAction(&m_configure_action_menu,
                                                                "XMakeProject.Configure",
                                                                project_context);
 
@@ -48,7 +48,7 @@ namespace XMakeProjectManager::Internal {
         }
 
         {
-            auto command = Core::ActionManager::registerAction(&m_build_target_context_action,
+            auto *command = Core::ActionManager::registerAction(&m_build_target_context_action,
                                                                "XMake.BuildTargetContextMenu",
                                                                project_context);
 
@@ -65,11 +65,11 @@ namespace XMakeProjectManager::Internal {
                     &XMakeActionsManager::updateContextActions);
 
             connect(&m_build_target_context_action, &Utils::ParameterAction::triggered, this, [] {
-                auto bs = qobject_cast<XMakeBuildSystem *>(
+                auto *bs = qobject_cast<XMakeBuildSystem *>(
                     ProjectExplorer::ProjectTree::currentBuildSystem());
 
                 if (bs) {
-                    auto target_node = dynamic_cast<XMakeTargetNode *>(
+                    auto *target_node = dynamic_cast<XMakeTargetNode *>(
                         ProjectExplorer::ProjectTree::currentNode());
                     target_node->build();
                 }
@@ -80,7 +80,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeActionsManager::configureCurrentProject() -> void {
-        auto bs =
+        auto *bs =
             dynamic_cast<XMakeBuildSystem *>(ProjectExplorer::ProjectTree::currentBuildSystem());
         QTC_ASSERT(bs, return );
 
@@ -90,7 +90,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeActionsManager::updateContextActions() -> void {
-        auto target_node =
+        auto *target_node =
             dynamic_cast<const XMakeTargetNode *>(ProjectExplorer::ProjectTree::currentNode());
         const auto target_display_name = target_node ? target_node->displayName() : QString {};
 

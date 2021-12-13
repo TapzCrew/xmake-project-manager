@@ -40,7 +40,7 @@ namespace XMakeProjectManager::Internal {
                                               QWidget *parent) -> void {
         auto data = QVariantMap {};
 
-        auto entry_count = 0u;
+        auto entry_count = 0;
 
         for (const auto &tool : tools) {
             data.insert(entryName(entry_count), toVariantMap(*tool));
@@ -73,7 +73,8 @@ namespace XMakeProjectManager::Internal {
                     map.value(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY },
                               Constants::ToolsSettings::TOOL_TYPE_XMAKE); // TODO xrepo
 
-                result.emplace_back(fromVariantMap(data[name].toMap()));
+                if(type == Constants::ToolsSettings::TOOL_TYPE_XMAKE)
+                    result.emplace_back(fromVariantMap(data[name].toMap()));
             }
         }
 

@@ -88,7 +88,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildSystem::xmakeBuildConfiguration() -> XMakeBuildConfiguration * {
-        return static_cast<XMakeBuildConfiguration *>(buildConfiguration());
+        return dynamic_cast<XMakeBuildConfiguration *>(buildConfiguration());
     }
 
     ////////////////////////////////////////////////////
@@ -120,6 +120,13 @@ namespace XMakeProjectManager::Internal {
                 &XMakeBuildConfiguration::environmentChanged,
                 this,
                 [this] { m_parser.setEnvironment(buildConfiguration()->environment()); });
+
+        connect(project(), &ProjectExplorer::Project::projectFileIsDirty, this, [this]() {
+            if(buildConfiguration()->isActive())
+                parseProject();
+        });
+
+        connect(&m_parser, &XMakeProjectParser::parsingCompleted, this, &XMakeBuildSystem::parsingCompleted);
 
         connect(&m_intro_watcher, &Utils::FileSystemWatcher::fileChanged, this, [this] {
             if (buildConfiguration()->isActive()) parseProject();
@@ -166,6 +173,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildSystem::parsingCompleted(bool success) -> void {
+
         if (!success) {
             ProjectExplorer::TaskHub::addTask(
                 ProjectExplorer::BuildSystemTask { ProjectExplorer::Task::Error,
