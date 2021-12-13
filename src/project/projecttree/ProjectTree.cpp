@@ -3,10 +3,14 @@
 #include <set>
 
 namespace XMakeProjectManager::Internal {
+    static Q_LOGGING_CATEGORY(xmake_project_tree_log, "qtc.xmake.projecttree", QtDebugMsg);
+
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto buildTargetTree(std::unique_ptr<XMakeProjectNode> &root, const Target &target) -> void {
         const auto path = Utils::FilePath::fromString(target.defined_in);
+
+
 
         // TODO
     }
@@ -17,7 +21,7 @@ namespace XMakeProjectManager::Internal {
         root->findNode([&root, &target, path = Utils::FilePath::fromString(target.defined_in)](
                            ProjectExplorer::Node *node) {
             if (node->filePath() == path.absolutePath()) {
-                auto as_folder = dynamic_cast<ProjectExplorer::FolderNode *>(node);
+                auto *as_folder = dynamic_cast<ProjectExplorer::FolderNode *>(node);
                 if (as_folder) {
                     auto target_node =
                         std::make_unique<XMakeTargetNode>(path.absolutePath().pathAppended(
@@ -49,16 +53,17 @@ namespace XMakeProjectManager::Internal {
 
         auto root = std::make_unique<XMakeProjectNode>(src_dir);
 
+        qCDebug(xmake_project_tree_log) << targets.size() << "target(s) found";
         for (const auto &target : targets) {
             buildTargetTree(root, target);
 
-            // target_paths.insert(Utils::FilePath::fromString(target))
+            target_paths.insert(Utils::FilePath::fromString(target.defined_in));
 
             addTargetNode(root, target);
         }
 
         for (auto bs_file : bs_files) {
-            if (bs_file.toFileInfo().isAbsolute())
+            if (!bs_file.toFileInfo().isAbsolute())
                 bs_file = src_dir.pathAppended(bs_file.toString());
 
             root->addNestedNode(

@@ -13,6 +13,8 @@
 #include <QStringList>
 
 namespace XMakeProjectManager::Internal {
+    static Q_LOGGING_CATEGORY(xmake_project_parser_log, "qtc.xmake.projectparser", QtDebugMsg);
+
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     XMakeProjectParser::XMakeProjectParser(const Utils::Id &xmake,
@@ -64,9 +66,7 @@ namespace XMakeProjectManager::Internal {
 
         m_output_parser.setSourceDirectory(source_path);
 
-        if (!isSetup(build_path)) return parse(source_path);
-
-        return startParser();
+        return parse(source_path);
     }
 
     ////////////////////////////////////////////////////
@@ -76,7 +76,10 @@ namespace XMakeProjectManager::Internal {
 
         m_output_parser.setSourceDirectory(source_path);
 
-        return m_process.run(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path),
+        auto cmd = XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path);
+        qCDebug(xmake_project_parser_log) << "Starting parser " << cmd.toUserOutput();
+
+        return m_process.run(cmd,
                              m_env,
                              m_project_name,
                              true);
@@ -99,6 +102,8 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProjectParser::processFinished(int code, QProcess::ExitStatus status) -> void {
+        qCDebug(xmake_project_parser_log) << "Process " << m_process.currentCommand().toUserOutput() << "finished with code: " << code << " status: " << status << " output: " << m_process.stdOut();
+
         if (code != 0 || status != QProcess::NormalExit) {
             const auto &data = m_process.stdOut();
 
@@ -119,6 +124,7 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProjectParser::extractParserResults(const Utils::FilePath &src_dir,
                                                   XMakeInfoParser::Result &&parser_result)
         -> XMakeProjectParser::ParserData * {
+        qCDebug(xmake_project_parser_log) << "Extract parser results";
         auto root_node = ProjectTree::buildTree(src_dir,
                                                 parser_result.targets,
                                                 parser_result.build_system_files);

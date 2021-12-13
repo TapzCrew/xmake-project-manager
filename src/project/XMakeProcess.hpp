@@ -32,6 +32,8 @@ namespace XMakeProjectManager::Internal {
 
         const QByteArray &stdOut() const noexcept;
 
+        const Command &currentCommand() const noexcept;
+
       Q_SIGNALS:
         void started();
         void finished(int exit_code, QProcess::ExitStatus exit_status);

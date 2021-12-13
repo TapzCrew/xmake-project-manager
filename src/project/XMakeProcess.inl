@@ -22,4 +22,8 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     inline auto XMakeProcess::stdOut() const noexcept -> const QByteArray & { return m_stdo; }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeProcess::currentCommand() const noexcept -> const Command & { return m_current_command; }
 } // namespace XMakeProjectManager::Internal

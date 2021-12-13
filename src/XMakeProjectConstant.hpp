@@ -4,8 +4,9 @@
 
 namespace XMakeProjectManager::Constants {
     namespace Icons {
-        static constexpr auto XMAKE    = ":/xmakeproject/icons/xmake_logo.png";
-        static constexpr auto XMAKE_BW = ":/xmakeproject/icons/xmake_bw_logo.png";
+        static constexpr auto XMAKE              = ":/xmakeproject/icons/xmake_logo.png";
+        static constexpr auto XMAKE_FILE_OVERLAY = ":/xmakeproject/icons/xmake_file_overlay.png";
+        static constexpr auto XMAKE_BW           = ":/xmakeproject/icons/xmake_bw_logo.png";
     } // namespace Icons
 
     namespace Project {

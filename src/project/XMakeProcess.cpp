@@ -88,8 +88,6 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProcess::handleProcessError(QProcess::ProcessError error) -> void {
-        qDebug() << *m_process;
-
         auto message     = QString {};
         auto command_str = m_current_command.toUserOutput();
 

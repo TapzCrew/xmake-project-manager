@@ -10,6 +10,8 @@
 #include <QUuid>
 
 namespace XMakeProjectManager::Internal {
+    static Q_LOGGING_CATEGORY(xmake_xmake_wrapper_log, "qtc.xmake.xmakewrapper", QtDebugMsg);
+
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     template<typename... T>
@@ -93,16 +95,26 @@ namespace XMakeProjectManager::Internal {
 
         return { m_exe,
                  source_directory,
-                 options_cat("-P", source_directory.toString(), "lua", path) };
+                 options_cat("lua", "-P", source_directory.toString(), path)};
     }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeWrapper::decompressIntrospectLuaIfNot() -> QString {
-        auto path = Core::ICore::userResourcePath("xmake-introspect-files") / "introspect.lua";
+        auto dir = Core::ICore::userResourcePath("xmake-introspect-files");
+        if(!QFileInfo::exists(dir.toString()))
+            dir.createDir();
 
-        if (QFileInfo::exists(path.toString()))
-            QFile::copy(":/assets/introspect.lua", path.toString());
+        auto path = dir.pathAppended("introspect.lua");
+
+        if (!QFileInfo::exists(path.toString())) {
+            qCDebug(xmake_xmake_wrapper_log) << "Extracting introspect.lua to " << path;
+
+            if(!QFile::copy(":/xmakeproject/assets/introspect.lua", path.toString())) {
+                qCDebug(xmake_xmake_wrapper_log) << "Failed to extract introspect.lua";
+                return "";
+            }
+        }
 
         return path.toString();
     }

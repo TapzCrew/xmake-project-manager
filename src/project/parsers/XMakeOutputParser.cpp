@@ -60,8 +60,6 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeOutputParser::processErrors(QStringView line) -> Result {
-        qDebug() << line;
-
         auto options_errors = m_options_errors_regex.match(line);
         if (options_errors.hasMatch()) {
             addTask(ProjectExplorer::Task::TaskType::Error, line);

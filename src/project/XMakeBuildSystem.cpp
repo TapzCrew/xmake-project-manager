@@ -32,7 +32,7 @@
     }
 
 namespace XMakeProjectManager::Internal {
-    static Q_LOGGING_CATEGORY(xmake_build_system_log, "qt.xmake.buildsystem", QtDebugMsg);
+    static Q_LOGGING_CATEGORY(xmake_build_system_log, "qtc.xmake.buildsystem", QtDebugMsg);
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -146,8 +146,7 @@ namespace XMakeProjectManager::Internal {
     auto XMakeBuildSystem::parseProject() -> bool {
         QTC_ASSERT(buildConfiguration(), return false);
 
-        if (!isSetup(buildConfiguration()->buildDirectory()) &&
-            Settings::instance()->autorunXMake().value())
+        if (Settings::instance()->autorunXMake().value())
             return configure();
 
         LEAVE_IF_BUSY();
@@ -173,11 +172,10 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildSystem::parsingCompleted(bool success) -> void {
-
         if (!success) {
             ProjectExplorer::TaskHub::addTask(
                 ProjectExplorer::BuildSystemTask { ProjectExplorer::Task::Error,
-                                                   tr("XMake build: Parsing failed") });
+                                                   tr("XMake introspection: Parsing failed") });
             UNLOCK(false);
 
             emitBuildSystemUpdated();

@@ -7,7 +7,7 @@
 namespace XMakeProjectManager::Internal {
     TargetParser::TargetParser(const QJsonDocument &json) {
         auto json_targets = get<QJsonArray>(json.object(), "targets");
-        if (json_targets) loadTargets(*json_targets);
+        if (json_targets) m_targets = loadTargets(*json_targets);
     }
 
     auto TargetParser::loadTargets(const QJsonArray &json_targets) -> TargetsList {
@@ -26,6 +26,13 @@ namespace XMakeProjectManager::Internal {
         auto json_target_obj = json_target.toObject();
 
         auto target = Target { json_target_obj["name"].toString() };
+
+        auto kind = json_target_obj["kind"].toString();
+        if(kind == "binary") target.kind = Target::Kind::BINARY;
+        else if(kind == "shared") target.kind = Target::Kind::SHARED;
+        else if(kind == "static") target.kind = Target::Kind::STATIC;
+
+        target.defined_in = json_target["defined_in"].toString();
 
         return target;
     }

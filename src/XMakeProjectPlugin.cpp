@@ -83,7 +83,7 @@ namespace XMakeProjectManager::Internal {
             QLatin1String { Constants::Project::MIMETYPE });
 
         Core::FileIconProvider::registerIconOverlayForFilename(
-            QLatin1String { Constants::Icons::XMAKE },
+            QLatin1String { Constants::Icons::XMAKE_FILE_OVERLAY },
             "xmake.lua");
 
         return true;
