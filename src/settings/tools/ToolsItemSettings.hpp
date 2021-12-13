@@ -22,6 +22,7 @@ namespace XMakeProjectManager::Internal {
 
       public:
         explicit ToolItemSettings(QWidget *parent = nullptr);
+        ~ToolItemSettings();
 
         void load(ToolTreeItem *item);
         void store();

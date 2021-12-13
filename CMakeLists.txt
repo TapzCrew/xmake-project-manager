@@ -31,9 +31,8 @@ file(GLOB_RECURSE
 add_qtc_plugin(${PROJECT_NAME}
     PLUGIN_DEPENDS
 	QtCreator::Core
-	QtCreator::CppEditor
-	QtCreator::TextEditor
-	QtCreator::ProjectExplorer
+        QtCreator::CppEditor
+        QtCreator::ProjectExplorer
 	QtCreator::QtSupport
     PLUGIN_RECOMMENDS
 	QtCreator::Designer
