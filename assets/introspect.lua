@@ -2,36 +2,84 @@
 import("core.project.config")
 import("core.project.project")
 
-function source_files_to_json(source_files, source_file_count)
-    SOURCE_FILE_JSON = [[
+function header_files_to_json(header_files)
+    HEADER_FILE_JSON = [[
                "%s"%s
     ]]
 
+    table.sort(header_files)
+
     local output = ""
 
-    for i, source_file in ipairs(source_files) do
-        local separator = ","
-
-        if i == source_file_count then
+    local separator = ","
+    for i, file in ipairs(header_files) do
+        if i == #header_files then
             separator = ""
         end
 
-        output = output .. format(SOURCE_FILE_JSON, source_file, separator)
+        output = output .. format(SOURCE_FILE_JSON, file, separator)
     end
 
     return output
 end
-function project_files_to_json(project_files, project_file_count)
-    PROJECT_FILE_JSON = [[
-         "%s"%s
+
+function source_files_to_json(source_files)
+    SOURCE_FILE_JSON = [[
+                   "%s"%s
+    ]]
+
+    table.sort(source_files)
+
+    local output = ""
+
+    local separator = ","
+    for i, file in ipairs(source_files) do
+        if i == #source_files then
+            separator = ""
+        end
+
+        output = output .. format(SOURCE_FILE_JSON, file, separator)
+    end
+
+    return output
+end
+
+function source_batches_to_json(source_batches)
+    SOURCE_BATCH_JSON = [[
+              {
+                "kind": "%s",
+                "files": [
+%s
+                ]
+              }%s
     ]]
 
     local output = ""
 
-    for i, project_file in ipairs(project_files) do
-        local separator = ","
+    local separator = ","
+    for i, batch in ipairs(source_batches) do
+        if i == #source_batches then
+            separator = ""
+        end
 
-        if i == project_file_count then
+        local source_files_json = source_files_to_json(batch.source_files)
+
+        output = output .. format(SOURCE_BATCH_JSON, batch.kind, source_files_json, separator)
+    end
+
+    return output
+end
+
+function project_files_to_json(project_files)
+    PROJECT_FILE_JSON = [[
+          "%s"%s
+    ]]
+
+    local output = ""
+
+    local separator = ","
+    for i, project_file in ipairs(project_files) do
+        if i == #project_files then
             separator = ""
         end
 
@@ -41,13 +89,16 @@ function project_files_to_json(project_files, project_file_count)
     return output
 end
 
-function targets_to_json(targets, targets_count)
+function targets_to_json(targets)
     TARGET_JSON = [[
           {
             "name": "%s",
             "kind": "%s",
             "defined_in": "%s",
-            "source_files": [
+            "source_batches": [
+%s
+            ],
+            "headers": [
 %s
             ]
           }%s
@@ -55,16 +106,16 @@ function targets_to_json(targets, targets_count)
 
     local output = ""
 
+    local separator = ","
     for i, target in ipairs(targets) do
-        local separator = ","
+        local source_batches_json = source_batches_to_json(target.source_batches)
+        local header_files_json = header_files_to_json(target.header_files)
 
-        local source_files_json = source_files_to_json(target.source_files, target.source_count)
-
-        if i == targets_count then
+        if i == #targets then
             separator = ""
         end
 
-        output = output .. format(TARGET_JSON, target.name, target.kind, target.defined_in, source_files_json, separator)
+        output = output .. format(TARGET_JSON, target.name, target.kind, target.defined_in, source_batches_json, header_files_json, separator)
     end
 
     return output
@@ -80,30 +131,29 @@ function main ()
 
     -- add targets data
     local targets = {}
-    local target_count = 0
     for name, target in pairs((project:targets())) do
-        local source_files = {}
-        local source_count = target:sourcecount()
+        local source_batches = {}
 
-        for _, file in ipairs(target:sourcefiles()) do
-            table.insert(source_files, file)
+        for name, batch in pairs(target:sourcebatches()) do
+            table.insert(source_batches, { kind = batch.sourcekind, source_files = batch.sourcefiles} )
         end
 
-        table.sort(source_files)
+        local header_files = {}
 
-        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = format("%s/%s", target:scriptdir(), "xmake.lua"), source_files = source_files, source_count = source_count })
-        target_count = target_count + 1
+        for _, file in ipairs(target:headerfiles()) do
+            table.insert(header_files, file)
+        end
+
+        table.sort(header_files)
+
+        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = format("%s/%s", target:scriptdir(), "xmake.lua"), source_batches = source_batches, header_files = header_files })
     end
     table.sort(targets, function(first, second) return first.name > second.name end)
 
     local project_files = {}
-    local project_file_count = 0
-    for i, file in ipairs((project:allfiles())) do
-        table.insert(project_files, file)
-        project_file_count = project_file_count + 1
+    for _, project_file in ipairs((project:allfiles())) do
+        table.insert(project_files, project_file)
     end
-
-    table.sort(project_files)
 
     JSON_OUTPUT = [[
     {
@@ -117,8 +167,8 @@ function main ()
     }
     ]]
 
-    project_files_json = project_files_to_json(project_files, project_file_count)
-    targets_json = targets_to_json(targets, target_count)
+    project_files_json = project_files_to_json(project_files)
+    targets_json = targets_to_json(targets)
 
     print(format(JSON_OUTPUT, version, project_files_json, targets_json))
 end

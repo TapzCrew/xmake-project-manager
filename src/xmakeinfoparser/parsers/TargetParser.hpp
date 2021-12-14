@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+
+#include <QString>
 #include <QtGlobal>
 
 #include <xmakeinfoparser/XMakeTargetParser.hpp>
@@ -21,6 +24,9 @@ namespace XMakeProjectManager::Internal {
       private:
         static TargetsList loadTargets(const QJsonArray &json_targets);
         static Target loadTarget(const QJsonValue &json_target);
+        static Target::SourceGroupList extractSources(const QJsonArray &json_sources);
+        static Target::SourceGroup extractSource(const QJsonValue &json_source);
+        static QStringList extractHeaders(const QJsonArray &json_headers);
 
         TargetsList m_targets;
     };

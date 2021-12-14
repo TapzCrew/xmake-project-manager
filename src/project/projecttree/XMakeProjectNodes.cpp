@@ -20,13 +20,15 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    XMakeTargetNode::XMakeTargetNode(const Utils::FilePath &directory, const QString &name)
+    XMakeTargetNode::XMakeTargetNode(const Utils::FilePath &directory,
+                                     const QString &name,
+                                     ProjectExplorer::ProductType type)
         : ProjectExplorer::ProjectNode { directory }, m_name { name } {
         setPriority(Node::DefaultProjectPriority + 900);
         setIcon(":/projectexplorer/images/build.png");
         setListInProject(false);
         setShowWhenEmpty(true);
-        setProductType(ProjectExplorer::ProductType::Other);
+        setProductType(type);
     }
 
     ////////////////////////////////////////////////////

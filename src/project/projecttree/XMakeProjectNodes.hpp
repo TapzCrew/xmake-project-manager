@@ -14,7 +14,9 @@ namespace XMakeProjectManager::Internal {
 
     class XMakeTargetNode final: public ProjectExplorer::ProjectNode {
       public:
-        XMakeTargetNode(const Utils::FilePath &directory, const QString &name);
+        XMakeTargetNode(const Utils::FilePath &directory,
+                        const QString &name,
+                        ProjectExplorer::ProductType type);
 
         void build() override;
 
