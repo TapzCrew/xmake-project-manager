@@ -122,11 +122,13 @@ namespace XMakeProjectManager::Internal {
                 [this] { m_parser.setEnvironment(buildConfiguration()->environment()); });
 
         connect(project(), &ProjectExplorer::Project::projectFileIsDirty, this, [this]() {
-            if(buildConfiguration()->isActive())
-                parseProject();
+            if (buildConfiguration()->isActive()) parseProject();
         });
 
-        connect(&m_parser, &XMakeProjectParser::parsingCompleted, this, &XMakeBuildSystem::parsingCompleted);
+        connect(&m_parser,
+                &XMakeProjectParser::parsingCompleted,
+                this,
+                &XMakeBuildSystem::parsingCompleted);
 
         connect(&m_intro_watcher, &Utils::FileSystemWatcher::fileChanged, this, [this] {
             if (buildConfiguration()->isActive()) parseProject();
@@ -146,8 +148,7 @@ namespace XMakeProjectManager::Internal {
     auto XMakeBuildSystem::parseProject() -> bool {
         QTC_ASSERT(buildConfiguration(), return false);
 
-        if (Settings::instance()->autorunXMake().value())
-            return configure();
+        if (Settings::instance()->autorunXMake().value()) return configure();
 
         LEAVE_IF_BUSY();
         LOCK();
@@ -187,11 +188,11 @@ namespace XMakeProjectManager::Internal {
 
         if (kit() && buildConfiguration()) {
             auto kit_info = ProjectExplorer::KitInfo { kit() };
-            /*m_cpp_code_model_updater.update(
+            m_cpp_code_model_updater.update(
                 { project(),
                   QtSupport::CppKitInfo { kit() },
                   buildConfiguration()->environment(),
-                  m_parser.buildProjectParts(kit_info.cxxToolChain, kit_info.cToolChain) });*/
+                  m_parser.buildProjectParts(kit_info.cxxToolChain, kit_info.cToolChain) });
         }
 
         // setApplicationTargets(m_parser.appsTargets());

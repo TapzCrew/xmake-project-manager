@@ -49,6 +49,10 @@ namespace XMakeProjectManager::Internal {
 
         void setEnvironment(const Utils::Environment &environment);
 
+        QList<ProjectExplorer::BuildTargetInfo> appTargets() const;
+        ProjectExplorer::RawProjectParts
+            buildProjectParts(const ProjectExplorer::ToolChain *cxx_toolchain,
+                              const ProjectExplorer::ToolChain *c_toolchain) const;
       Q_SIGNALS:
         void parsingCompleted(bool success);
 
@@ -65,6 +69,12 @@ namespace XMakeProjectManager::Internal {
                                                 XMakeInfoParser::Result &&parser_result);
 
         void update(const QFuture<ParserData *> &data);
+
+        ProjectExplorer::RawProjectPart
+            buildProjectPart(const Target &target,
+                             const Target::SourceGroup &sources,
+                             const ProjectExplorer::ToolChain *cxx_toolchain,
+                             const ProjectExplorer::ToolChain *c_toolchain) const;
 
         XMakeProcess m_process;
         bool m_configuring;

@@ -75,6 +75,8 @@ namespace XMakeProjectManager::Internal {
         }
 
         ProjectExplorer::BuildManager::buildList(buildSteps());
+
+        if (xmake_build_step) xmake_build_step->setBuildTarget(target);
     }
 
     ////////////////////////////////////////////////////

@@ -1,5 +1,7 @@
 #include "XMakeProjectParser.hpp"
 
+#include <algorithm>
+
 #include <exewrappers/XMakeTools.hpp>
 #include <project/projecttree/ProjectTree.hpp>
 
@@ -14,6 +16,65 @@
 
 namespace XMakeProjectManager::Internal {
     static Q_LOGGING_CATEGORY(xmake_project_parser_log, "qtc.xmake.projectparser", QtDebugMsg);
+
+    struct CompilerArgs {
+        QStringList arguments;
+        QStringList include_paths;
+        ProjectExplorer::Macros macros;
+    };
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto extractValueIfMatches(const QString &arg, const QStringList &candidates)
+        -> Utils::optional<QString> {
+        for (const auto &flag : candidates)
+            if (arg.startsWith(flag)) return arg.mid(flag.length());
+
+        return Utils::nullopt;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto extractInclude(const QString &arg) -> Utils::optional<QString> {
+        return extractValueIfMatches(arg, { "-I", "/I", "-isystem", "-imsvc", "/imsvc" });
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto extractMacro(const QString &arg) -> Utils::optional<ProjectExplorer::Macro> {
+        auto define = extractValueIfMatches(arg, { "-D", "/D" });
+        if (define) return ProjectExplorer::Macro::fromKeyValue(define->toLatin1());
+
+        auto undef = extractValueIfMatches(arg, { "-U", "/U" });
+
+        if (undef)
+            return ProjectExplorer::Macro(undef->toLatin1(), ProjectExplorer::MacroType::Undefine);
+
+        return Utils::nullopt;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto splitArgs(const QStringList &args, const Utils::FilePath &src_dir) -> CompilerArgs {
+        auto splited = CompilerArgs {};
+
+        for (const QString &arg : args) {
+            auto inc = extractInclude(arg);
+            if (inc) {
+                auto path = Utils::FilePath::fromString(*inc);
+                if (!path.isAbsolutePath()) path = src_dir.pathAppended(*inc);
+
+                splited.include_paths << path.path();
+            } else {
+                auto macro = extractMacro(arg);
+                if (macro) splited.macros << *macro;
+                else
+                    splited.arguments << arg;
+            }
+        }
+
+        return splited;
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -46,6 +107,8 @@ namespace XMakeProjectManager::Internal {
 
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->configure(source_path, build_path, args);
 
+        m_pending_commands.enqueue(
+            std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
         m_pending_commands.enqueue(
             std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
 
@@ -83,6 +146,47 @@ namespace XMakeProjectManager::Internal {
         qCDebug(xmake_project_parser_log) << "Starting parser " << cmd.toUserOutput();
 
         return m_process.run(cmd, m_env, m_project_name, true);
+    }
+
+    auto XMakeProjectParser::appTargets() const -> QList<ProjectExplorer::BuildTargetInfo> {
+        auto apps = QList<ProjectExplorer::BuildTargetInfo> {};
+
+        for (const auto &target : m_parser_result.targets) {
+            if (target.kind == Target::Kind::BINARY) {
+                auto &target_info = apps.emplace_back();
+
+                target_info.displayName           = target.name;
+                target_info.buildKey              = Target::fullName(m_src_dir, target);
+                target_info.displayNameUniquifier = target_info.buildKey;
+                target_info.targetFilePath        = Utils::FilePath::fromString(target.target_file);
+                target_info.workingDirectory =
+                    Utils::FilePath::fromString(target.target_file).absolutePath();
+                target_info.projectFilePath = Utils::FilePath::fromString(target.defined_in);
+                target_info.usesTerminal    = true;
+            }
+        }
+
+        return apps;
+    }
+
+    auto XMakeProjectParser::buildProjectParts(const ProjectExplorer::ToolChain *cxx_toolchain,
+                                               const ProjectExplorer::ToolChain *c_toolchain) const
+        -> ProjectExplorer::RawProjectParts {
+        auto parts = ProjectExplorer::RawProjectParts {};
+
+        for (const auto &target : m_parser_result.targets) {
+            std::transform(std::cbegin(target.sources),
+                           std::cend(target.sources),
+                           std::back_inserter(parts),
+                           [&target, &cxx_toolchain, &c_toolchain, this](const auto &source_group) {
+                               return buildProjectPart(target,
+                                                       source_group,
+                                                       cxx_toolchain,
+                                                       c_toolchain);
+                           });
+        }
+
+        return parts;
     }
 
     ////////////////////////////////////////////////////
@@ -148,13 +252,48 @@ namespace XMakeProjectManager::Internal {
 
         m_targets_names.clear();
 
-        for (const auto &target : m_parser_result.targets)
-            m_targets_names.emplace_back(target.name);
+        std::transform(std::cbegin(m_parser_result.targets),
+                       std::cend(m_parser_result.targets),
+                       std::back_inserter(m_targets_names),
+                       [](const auto &target) { return target.name; });
 
         m_targets_names.sort();
 
         delete parser_data;
 
         Q_EMIT parsingCompleted(true);
+    }
+
+    auto XMakeProjectParser::buildProjectPart(const Target &target,
+                                              const Target::SourceGroup &sources,
+                                              const ProjectExplorer::ToolChain *cxx_toolchain,
+                                              const ProjectExplorer::ToolChain *c_toolchain) const
+        -> ProjectExplorer::RawProjectPart {
+        auto part = ProjectExplorer::RawProjectPart {};
+
+        auto absolute_sources = QStringList {};
+        absolute_sources.reserve(std::size(sources.sources));
+        std::transform(std::cbegin(sources.sources),
+                       std::cend(sources.sources),
+                       std::back_inserter(absolute_sources),
+                       [&src_dir = m_src_dir](const auto &file) {
+                           return src_dir.pathAppended(file).path();
+                       });
+
+        part.setDisplayName(target.name);
+        part.setBuildSystemTarget(Target::fullName(m_src_dir, target));
+        part.setFiles(absolute_sources);
+        part.setProjectFileLocation(target.defined_in);
+
+        auto flags = splitArgs(sources.arguments, m_src_dir);
+
+        part.setIncludePaths(flags.include_paths);
+        part.setMacros(flags.macros);
+
+        if (sources.language == "cpp") part.setFlagsForCxx({ cxx_toolchain, flags.arguments, {} });
+        else if (sources.language == "cc")
+            part.setFlagsForC({ c_toolchain, flags.arguments, {} });
+
+        return part;
     }
 } // namespace XMakeProjectManager::Internal

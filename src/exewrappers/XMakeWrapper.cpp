@@ -90,27 +90,41 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    auto XMakeWrapper::generateCompileCommands(const Utils::FilePath &source_directory,
+                                               const Utils::FilePath &build_directory) -> Command {
+        return { m_exe,
+                 build_directory,
+                 options_cat("project",
+                             "-k",
+                             "compile_commands",
+                             "-P",
+                             source_directory.toString(),
+                             "-o",
+                             build_directory.toString()) };
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto XMakeWrapper::introspect(const Utils::FilePath &source_directory) -> Command {
         auto path = decompressIntrospectLuaIfNot();
 
         return { m_exe,
                  source_directory,
-                 options_cat("lua", "-P", source_directory.toString(), path)};
+                 options_cat("lua", "-P", source_directory.toString(), path) };
     }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeWrapper::decompressIntrospectLuaIfNot() -> QString {
         auto dir = Core::ICore::userResourcePath("xmake-introspect-files");
-        if(!QFileInfo::exists(dir.toString()))
-            dir.createDir();
+        if (!QFileInfo::exists(dir.toString())) dir.createDir();
 
         auto path = dir.pathAppended("introspect.lua");
 
         if (!QFileInfo::exists(path.toString())) {
             qCDebug(xmake_xmake_wrapper_log) << "Extracting introspect.lua to " << path;
 
-            if(!QFile::copy(":/xmakeproject/assets/introspect.lua", path.toString())) {
+            if (!QFile::copy(":/xmakeproject/assets/introspect.lua", path.toString())) {
                 qCDebug(xmake_xmake_wrapper_log) << "Failed to extract introspect.lua";
                 return "";
             }

@@ -5,11 +5,16 @@
 
 #include <vector>
 
+namespace Utils {
+    class FilePath;
+}
+
 namespace XMakeProjectManager::Internal {
     struct Target {
         struct SourceGroup {
             QString language;
             QStringList sources;
+            QStringList arguments;
         };
         using SourceGroupList = std::vector<SourceGroup>;
 
@@ -21,6 +26,10 @@ namespace XMakeProjectManager::Internal {
 
         SourceGroupList sources;
         QStringList headers;
+
+        QString target_file;
+
+        static QString fullName(const Utils::FilePath &srcDir, const Target &target);
     };
 
     using TargetsList = std::vector<Target>;

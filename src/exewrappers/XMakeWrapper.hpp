@@ -82,6 +82,8 @@ namespace XMakeProjectManager::Internal {
                           const Utils::FilePath &build_directory,
                           const QStringList &options = {}) const;
 
+        Command generateCompileCommands(const Utils::FilePath &source_directory,
+                                        const Utils::FilePath &build_directory);
         Command introspect(const Utils::FilePath &source_directory);
 
         static QString toolName();

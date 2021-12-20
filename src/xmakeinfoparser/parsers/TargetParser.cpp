@@ -60,7 +60,9 @@ namespace XMakeProjectManager::Internal {
     auto TargetParser::extractSource(const QJsonValue &json_source) -> Target::SourceGroup {
         const auto source = json_source.toObject();
 
-        return { json_source["kind"].toString(), json_source["files"].toVariant().toStringList() };
+        return { json_source["kind"].toString(),
+                 json_source["files"].toVariant().toStringList(),
+                 json_source["arguments"].toVariant().toStringList() };
     }
 
     auto TargetParser::extractHeaders(const QJsonArray &json_headers) -> QStringList {
