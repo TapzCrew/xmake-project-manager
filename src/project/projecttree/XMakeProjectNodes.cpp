@@ -37,7 +37,10 @@ namespace XMakeProjectManager::Internal {
         auto project = getProject();
         auto target  = project ? project->activeTarget() : nullptr;
 
-        // TODO
+        if (target)
+            static_cast<XMakeBuildSystem *>(target->buildSystem())
+                ->xmakeBuildConfiguration()
+                ->build(m_name);
     }
 
     ////////////////////////////////////////////////////

@@ -90,21 +90,6 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeWrapper::generateCompileCommands(const Utils::FilePath &source_directory,
-                                               const Utils::FilePath &build_directory) -> Command {
-        return { m_exe,
-                 build_directory,
-                 options_cat("project",
-                             "-k",
-                             "compile_commands",
-                             "-P",
-                             source_directory.toString(),
-                             "-o",
-                             build_directory.toString()) };
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
     auto XMakeWrapper::introspect(const Utils::FilePath &source_directory) -> Command {
         auto path = decompressIntrospectLuaIfNot();
 

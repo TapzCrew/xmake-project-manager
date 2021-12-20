@@ -33,6 +33,11 @@ namespace XMakeProjectManager::Constants {
         static constexpr auto TOOL_TYPE_KEY    = "type";
     } // namespace ToolsSettings
 
+    namespace BuildConfiguration {
+        static constexpr auto BUILD_TYPE_KEY = "XMakeProjectManager.BuildConfig.Type";
+        static constexpr auto PARAMETERS_KEY = "XMakeProjectManager.BuildConfig.Parameters";
+    } // namespace BuildConfiguration
+
     static constexpr auto XMAKE_INFO_DIR = ".xmake";
 
 #if defined(Q_OS_WINDOWS)

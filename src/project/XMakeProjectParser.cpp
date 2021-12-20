@@ -103,9 +103,11 @@ namespace XMakeProjectManager::Internal {
         m_src_dir   = source_path;
         m_build_dir = build_path;
 
+        m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.pathAppended(".xmake").path());
+
         m_output_parser.setSourceDirectory(source_path);
 
-        auto cmd = XMakeTools::xmakeWrapper(m_xmake)->configure(source_path, build_path, args);
+        auto cmd = XMakeTools::xmakeWrapper(m_xmake)->configure(m_src_dir, m_build_dir, args);
 
         m_pending_commands.enqueue(
             std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
@@ -141,6 +143,8 @@ namespace XMakeProjectManager::Internal {
         m_src_dir = source_path;
 
         m_output_parser.setSourceDirectory(source_path);
+
+        m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.pathAppended(".xmake").path());
 
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path);
         qCDebug(xmake_project_parser_log) << "Starting parser " << cmd.toUserOutput();
