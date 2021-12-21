@@ -34,6 +34,7 @@ namespace XMakeProjectManager::Internal {
         setEnvironmentModifier([this](Utils::Environment &env) {
             env.setupEnglishOutput();
             env.appendOrSet("XMAKE_CONFIGDIR", buildDirectory().path());
+            env.appendOrSet("XMAKE_THEME", "plain");
         });
         setWorkingDirectoryProvider([this] { return project()->projectDirectory(); });
 
