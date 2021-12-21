@@ -19,6 +19,9 @@ namespace XMakeProjectManager::Internal {
         : ProjectExplorer::BuildConfiguration { target, id } {
         appendInitialBuildStep(Constants::XMAKE_BUILD_STEP_ID);
         appendInitialCleanStep(Constants::XMAKE_BUILD_STEP_ID);
+
+        qDebug() << buildSteps()->count();
+
         setInitializer([this, target](const auto &info) {
             m_build_type = xmakeBuildType(info.typeName);
 
@@ -63,6 +66,8 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildConfiguration::build(const QString &target) -> void {
+        const auto &build_steps = *buildSteps();
+
         auto *xmake_build_step = qobject_cast<XMakeBuildStep *>(
             Utils::findOrDefault(buildSteps()->steps(), [](const auto *bs) {
                 return bs->id() == Constants::XMAKE_BUILD_STEP_ID;

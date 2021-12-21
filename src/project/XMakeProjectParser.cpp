@@ -12,6 +12,7 @@
 #include <utils/fileinprojectfinder.h>
 #include <utils/runextensions.h>
 
+#include <QJsonDocument>
 #include <QStringList>
 
 namespace XMakeProjectManager::Internal {
@@ -62,7 +63,7 @@ namespace XMakeProjectManager::Internal {
             auto inc = extractInclude(arg);
             if (inc) {
                 auto path = Utils::FilePath::fromString(*inc);
-                if (!path.isAbsolutePath()) path = src_dir.pathAppended(*inc);
+                if (!path.isAbsolutePath()) path = src_dir.resolvePath(*inc);
 
                 splited.include_paths << path.path();
             } else {
@@ -103,7 +104,7 @@ namespace XMakeProjectManager::Internal {
         m_src_dir   = source_path;
         m_build_dir = build_path;
 
-        m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.pathAppended(".xmake").path());
+        m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.path());
 
         m_output_parser.setSourceDirectory(source_path);
 
@@ -122,7 +123,8 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProjectParser::wipe(const Utils::FilePath &source_path,
                                   const Utils::FilePath &build_path,
                                   const QStringList &args) -> bool {
-        return QFile::remove((build_path / ".xmake").toString());
+        return QFile::remove(
+            build_path.resolvePath(QString::fromLatin1(Constants::XMAKE_INFO_DIR)).path());
     }
 
     ////////////////////////////////////////////////////
@@ -144,7 +146,7 @@ namespace XMakeProjectManager::Internal {
 
         m_output_parser.setSourceDirectory(source_path);
 
-        m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.pathAppended(".xmake").path());
+        m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.path());
 
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path);
         qCDebug(xmake_project_parser_log) << "Starting parser " << cmd.toUserOutput();
@@ -159,12 +161,14 @@ namespace XMakeProjectManager::Internal {
             if (target.kind == Target::Kind::BINARY) {
                 auto &target_info = apps.emplace_back();
 
-                target_info.displayName           = target.name;
-                target_info.buildKey              = Target::fullName(m_src_dir, target);
+                auto target_file = m_src_dir.resolvePath(target.target_file).path();
+
+                target_info.displayName = target.name;
+                target_info.buildKey = Target::fullName(m_src_dir, target_file, target.defined_in);
                 target_info.displayNameUniquifier = target_info.buildKey;
-                target_info.targetFilePath        = Utils::FilePath::fromString(target.target_file);
+                target_info.targetFilePath        = Utils::FilePath::fromString(target_file);
                 target_info.workingDirectory =
-                    Utils::FilePath::fromString(target.target_file).absolutePath();
+                    Utils::FilePath::fromString(target_file).absolutePath();
                 target_info.projectFilePath = Utils::FilePath::fromString(target.defined_in);
                 target_info.usesTerminal    = true;
             }
@@ -210,9 +214,10 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProjectParser::processFinished(int code, QProcess::ExitStatus status) -> void {
-        qCDebug(xmake_project_parser_log) << "Process " << m_process.currentCommand().toUserOutput()
-                                          << "finished with code: " << code << " status: " << status
-                                          << " output: " << m_process.stdOut();
+        qCDebug(xmake_project_parser_log)
+            << "Process " << m_process.currentCommand().toUserOutput()
+            << "finished with code: " << code << " status: " << status
+            << " output: " << QJsonDocument::fromJson(m_process.stdOut());
 
         if (code != 0 || status != QProcess::NormalExit) {
             const auto &data = m_process.stdOut();
@@ -273,6 +278,8 @@ namespace XMakeProjectManager::Internal {
                                               const ProjectExplorer::ToolChain *cxx_toolchain,
                                               const ProjectExplorer::ToolChain *c_toolchain) const
         -> ProjectExplorer::RawProjectPart {
+        auto target_file = m_src_dir.resolvePath(target.target_file).path();
+
         auto part = ProjectExplorer::RawProjectPart {};
 
         auto absolute_sources = QStringList {};
@@ -281,11 +288,11 @@ namespace XMakeProjectManager::Internal {
                        std::cend(sources.sources),
                        std::back_inserter(absolute_sources),
                        [&src_dir = m_src_dir](const auto &file) {
-                           return src_dir.pathAppended(file).path();
+                           return src_dir.resolvePath(file).path();
                        });
 
         part.setDisplayName(target.name);
-        part.setBuildSystemTarget(Target::fullName(m_src_dir, target));
+        part.setBuildSystemTarget(Target::fullName(m_src_dir, target_file, target.defined_in));
         part.setFiles(absolute_sources);
         part.setProjectFileLocation(target.defined_in);
 

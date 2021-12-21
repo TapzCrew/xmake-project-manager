@@ -37,7 +37,7 @@ namespace XMakeProjectManager::Internal {
 
         QString m_command_args;
         QString m_target_name;
-        std::unique_ptr<XMakeBuildParser> m_xmake_parser;
+        XMakeBuildParser *m_xmake_parser;
     };
 
     class XMakeBuildStepFactory final: public ProjectExplorer::BuildStepFactory {
@@ -52,3 +52,5 @@ namespace XMakeProjectManager::Internal {
         XMakeBuildStepFactory &operator=(const XMakeBuildStepFactory &&) const = delete;
     };
 } // namespace XMakeProjectManager::Internal
+
+#include "XMakeBuildStep.inl"

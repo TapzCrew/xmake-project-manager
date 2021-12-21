@@ -13,7 +13,7 @@
 #include <QLoggingCategory>
 
 namespace XMakeProjectManager::Internal {
-    static constexpr auto CANCEL_TIMER_INTERVAL = 500;
+    static constexpr auto CANCEL_TIMER_INTERVAL         = 500;
     static constexpr auto CONFIGURE_TASK_ESTIMATED_TIME = 10;
 
     static Q_LOGGING_CATEGORY(xmakeProcessLog, "qtc.xmake.buildsystem", QtDebugMsg);
@@ -42,7 +42,8 @@ namespace XMakeProjectManager::Internal {
         auto _env = env;
         _env.appendOrSet("XMAKE_THEME", "plain");
 
-        ProjectExplorer::TaskHub::clearTasks(static_cast<const char *>(ProjectExplorer::Constants::TASK_CATEGORY_BUILDSYSTEM));
+        ProjectExplorer::TaskHub::clearTasks(
+            static_cast<const char *>(ProjectExplorer::Constants::TASK_CATEGORY_BUILDSYSTEM));
         setupProcess(command, _env, capture_stdo);
 
         m_future.setProgressRange(0, 1);
@@ -162,6 +163,7 @@ namespace XMakeProjectManager::Internal {
                     &XMakeProcess::processStandardError);
         }
 
+        m_process->setWorkingDirectory(command.workDir());
         m_process->setEnvironment(env);
 
         Core::MessageManager::writeFlashing(

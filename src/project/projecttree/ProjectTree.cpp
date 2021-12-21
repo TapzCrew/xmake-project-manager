@@ -22,15 +22,11 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto buildTargetSourceTree(ProjectExplorer::VirtualFolderNode *node, const Target &target)
         -> void {
-        const auto path = Utils::FilePath::fromString(target.defined_in);
-
         for (const auto &group : target.sources) {
             for (const auto &file : group.sources) {
-                qCDebug(xmake_project_tree_log)
-                    << "Source node " << path.absolutePath().pathAppended(file);
+                qCDebug(xmake_project_tree_log) << "Source node " << file;
                 node->addNestedNode(
-                    std::make_unique<ProjectExplorer::FileNode>(path.absolutePath().pathAppended(
-                                                                    file),
+                    std::make_unique<ProjectExplorer::FileNode>(Utils::FilePath::fromString(file),
                                                                 ProjectExplorer::FileType::Source));
             }
         }
@@ -38,13 +34,10 @@ namespace XMakeProjectManager::Internal {
 
     auto buildTargetHeaderTree(ProjectExplorer::VirtualFolderNode *node, const Target &target)
         -> void {
-        const auto path = Utils::FilePath::fromString(target.defined_in);
-
         for (const auto &file : target.headers) {
-            qCDebug(xmake_project_tree_log)
-                << "Header node " << path.absolutePath().pathAppended(file);
+            qCDebug(xmake_project_tree_log) << "Header node " << file;
             node->addNestedNode(
-                std::make_unique<ProjectExplorer::FileNode>(path.absolutePath().pathAppended(file),
+                std::make_unique<ProjectExplorer::FileNode>(Utils::FilePath::fromString(file),
                                                             ProjectExplorer::FileType::Header));
         }
     }
@@ -161,37 +154,41 @@ namespace XMakeProjectManager::Internal {
         for (const auto &target : targets) {
             auto *parent = addTargetNode(root, target);
 
-            auto p           = ::Utils::FilePath::fromString(target.defined_in).absolutePath();
             auto common_path = findCommonPath(target.sources);
-            auto p2          = p / common_path;
-            auto node        = std::make_unique<ProjectExplorer::VirtualFolderNode>(p2);
-            qCDebug(xmake_project_tree_log) << "Virtual sources node " << node->path();
-            node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
-            node->setDisplayName("Source Files");
-            node->setIsSourcesOrHeaders(true);
-            node->setListInProject(false);
-            node->setIcon(
-                [] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
+            auto node        = std::unique_ptr<ProjectExplorer::VirtualFolderNode> {};
+            if (common_path.size() > 0) {
+                auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(
+                    Utils::FilePath::fromString(common_path));
+                qCDebug(xmake_project_tree_log) << "Virtual sources node " << node->path();
+                node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
+                node->setDisplayName("Source Files");
+                node->setIsSourcesOrHeaders(true);
+                node->setListInProject(false);
+                node->setIcon(
+                    [] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
 
-            buildTargetSourceTree(node.get(), target);
+                buildTargetSourceTree(node.get(), target);
 
-            parent->addNode(std::move(node));
+                parent->addNode(std::move(node));
+            }
 
-            p           = ::Utils::FilePath::fromString(target.defined_in).absolutePath();
             common_path = findCommonPath(target.headers);
-            p2          = p / common_path;
-            node        = std::make_unique<ProjectExplorer::VirtualFolderNode>(p2);
-            qCDebug(xmake_project_tree_log) << "Virtual headers node " << node->path();
-            node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
-            node->setDisplayName("Header Files");
-            node->setIsSourcesOrHeaders(true);
-            node->setListInProject(false);
-            node->setIcon(
-                [] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
 
-            buildTargetHeaderTree(node.get(), target);
+            if (common_path.size() > 0) {
+                node = std::make_unique<ProjectExplorer::VirtualFolderNode>(
+                    Utils::FilePath::fromString(common_path));
+                qCDebug(xmake_project_tree_log) << "Virtual headers node " << node->path();
+                node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
+                node->setDisplayName("Header Files");
+                node->setIsSourcesOrHeaders(true);
+                node->setListInProject(false);
+                node->setIcon(
+                    [] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
 
-            parent->addNode(std::move(node));
+                buildTargetHeaderTree(node.get(), target);
+
+                parent->addNode(std::move(node));
+            }
 
             target_paths.insert(Utils::FilePath::fromString(target.defined_in).absolutePath());
         }

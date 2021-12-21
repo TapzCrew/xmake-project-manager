@@ -29,7 +29,9 @@ namespace XMakeProjectManager::Internal {
 
         QString target_file;
 
-        static QString fullName(const Utils::FilePath &srcDir, const Target &target);
+        static QString fullName(const Utils::FilePath &srcDir,
+                                const QString &target_file,
+                                const QString &defined_in);
     };
 
     using TargetsList = std::vector<Target>;

@@ -51,5 +51,6 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     inline auto XMakeBuildConfiguration::setParameters(QString params) -> void {
         m_parameters = params;
+        Q_EMIT parametersChanged();
     }
 } // namespace XMakeProjectManager::Internal

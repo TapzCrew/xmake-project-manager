@@ -33,4 +33,16 @@ namespace XMakeProjectManager::Internal {
     inline auto XMakeProjectParser::setEnvironment(const Utils::Environment &env) -> void {
         m_env = env;
     }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeProjectParser::srcDir() const noexcept -> const Utils::FilePath & {
+        return m_src_dir;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeProjectParser::buildDir() const noexcept -> const Utils::FilePath & {
+        return m_build_dir;
+    }
 } // namespace XMakeProjectManager::Internal

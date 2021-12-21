@@ -38,6 +38,17 @@ namespace XMakeProjectManager::Constants {
         static constexpr auto PARAMETERS_KEY = "XMakeProjectManager.BuildConfig.Parameters";
     } // namespace BuildConfiguration
 
+    namespace BuildStep {
+        static constexpr auto TARGETS_KEY = "XMakeProjectManager.BuildStep.BuildTargets";
+        static constexpr auto TOOL_ARGUMENTS_KEY =
+            "XMakeProjectManager.BuildStep.AdditionalArguments";
+    } // namespace BuildStep
+
+    namespace Targets {
+        static constexpr auto ALL   = "all";
+        static constexpr auto CLEAN = "clean";
+    } // namespace Targets
+
     static constexpr auto XMAKE_INFO_DIR = ".xmake";
 
 #if defined(Q_OS_WINDOWS)

@@ -27,6 +27,11 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    inline auto XMakeBuildSystem::parser() const noexcept -> const XMakeProjectParser & {
+        return m_parser;
+    }
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     // inline auto XMakeBuildSystem::setXMakeConfigArgs(QStringList args) {
     //    m_pending_config_args = std::move(args);
     //}

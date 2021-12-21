@@ -7,6 +7,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QStandardPaths>
 #include <QUuid>
 
 namespace XMakeProjectManager::Internal {
@@ -79,7 +80,7 @@ namespace XMakeProjectManager::Internal {
                                  const Utils::FilePath &build_directory,
                                  const QStringList &options) const -> Command {
         return { m_exe,
-                 build_directory,
+                 Utils::FilePath::fromString(QDir::rootPath()), // source_directory,
                  options_cat("f",
                              "-P",
                              source_directory.toString(),
@@ -94,8 +95,22 @@ namespace XMakeProjectManager::Internal {
         auto path = decompressIntrospectLuaIfNot();
 
         return { m_exe,
-                 source_directory,
+                 Utils::FilePath::fromString(QDir::rootPath()), // source_directory,
                  options_cat("lua", "-P", source_directory.toString(), path) };
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto extractQrcFileTo(QString input, QString output) -> void {
+        QString name = QFileInfo { input }.fileName();
+
+        if (!QFileInfo::exists(output)) {
+            qCDebug(xmake_xmake_wrapper_log) << QString { "Extracting %1 to %2" }.arg(name, output);
+
+            if (!QFile::copy(input, output)) {
+                qCDebug(xmake_xmake_wrapper_log) << QString { "Failed to extract %1" }.arg(name);
+            }
+        }
     }
 
     ////////////////////////////////////////////////////
@@ -104,17 +119,10 @@ namespace XMakeProjectManager::Internal {
         auto dir = Core::ICore::userResourcePath("xmake-introspect-files");
         if (!QFileInfo::exists(dir.toString())) dir.createDir();
 
-        auto path = dir.pathAppended("introspect.lua");
+        auto introspect_path = dir.pathAppended("introspect.lua");
+        extractQrcFileTo(":/xmakeproject/assets/introspect.lua", introspect_path.toString());
+        extractQrcFileTo(":/xmakeproject/assets/json.lua", dir.pathAppended("json.lua").toString());
 
-        if (!QFileInfo::exists(path.toString())) {
-            qCDebug(xmake_xmake_wrapper_log) << "Extracting introspect.lua to " << path;
-
-            if (!QFile::copy(":/xmakeproject/assets/introspect.lua", path.toString())) {
-                qCDebug(xmake_xmake_wrapper_log) << "Failed to extract introspect.lua";
-                return "";
-            }
-        }
-
-        return path.toString();
+        return introspect_path.toString();
     }
 } // namespace XMakeProjectManager::Internal

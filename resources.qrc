@@ -7,5 +7,6 @@
         <file>assets/introspect.lua</file>
         <file>icons/xmake_file_overlay@2x.png</file>
         <file>icons/xmake_file_overlay.png</file>
+        <file>assets/json.lua</file>
     </qresource>
 </RCC>

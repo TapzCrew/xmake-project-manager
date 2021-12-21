@@ -16,7 +16,7 @@ namespace XMakeProjectManager::Internal {
     class XMakeBuildSystem final: public ProjectExplorer::BuildSystem {
         Q_OBJECT
       public:
-        XMakeBuildSystem(XMakeBuildConfiguration *build_conf);
+        explicit XMakeBuildSystem(XMakeBuildConfiguration *build_conf);
 
         void triggerParsing() override;
 
@@ -33,6 +33,8 @@ namespace XMakeProjectManager::Internal {
         const QStringList &targetList() const noexcept;
 
         void setXMakeConfigArgs(QStringList args);
+
+        const XMakeProjectParser &parser() const noexcept;
 
       private:
         void init();

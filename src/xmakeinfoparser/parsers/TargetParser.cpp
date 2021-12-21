@@ -42,6 +42,8 @@ namespace XMakeProjectManager::Internal {
         auto json_headers = json_target["headers"].toArray();
         target.headers    = extractHeaders(json_headers);
 
+        target.target_file = json_target["target_file"].toString();
+
         return target;
     }
 

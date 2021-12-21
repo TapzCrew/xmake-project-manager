@@ -67,7 +67,7 @@ namespace XMakeProjectManager::Internal {
         aspect<ProjectExplorer::ExecutableAspect>()->setExecutable(b_ti.targetFilePath);
         aspect<ProjectExplorer::WorkingDirectoryAspect>()->setDefaultWorkingDirectory(
             b_ti.workingDirectory);
-        aspect<ProjectExplorer::LocalEnvironmentAspect>()->environmentChanged();
+        Q_EMIT aspect<ProjectExplorer::LocalEnvironmentAspect>()->environmentChanged();
     }
 
     ////////////////////////////////////////////////////

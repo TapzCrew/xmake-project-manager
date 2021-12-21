@@ -3,6 +3,8 @@ import("core.project.config")
 import("core.project.project")
 import("core.tool.compiler")
 
+-- import("json")
+
 function header_files_to_json(header_files)
     HEADER_FILE_JSON = [[
                "%s"%s
@@ -18,7 +20,9 @@ function header_files_to_json(header_files)
             separator = ""
         end
 
-        output = output .. format(SOURCE_FILE_JSON, file, separator)
+        local _file = path.absolute(file, project:directory())
+
+        output = output .. format(SOURCE_FILE_JSON, _file, separator)
     end
 
     return output
@@ -39,7 +43,8 @@ function source_files_to_json(source_files)
             separator = ""
         end
 
-        output = output .. format(SOURCE_FILE_JSON, file, separator)
+        local _file = path.absolute(file, project:directory())
+        output = output .. format(SOURCE_FILE_JSON, _file, separator)
     end
 
     return output
@@ -147,10 +152,13 @@ end
 
 -- main entry
 function main ()
+    local output = {}
+
     -- load config
     config.load()
 
     -- add version info
+    output.version = xmake.version()
     local version = xmake.version()
 
     -- add targets data
@@ -177,14 +185,20 @@ function main ()
 
         table.sort(header_files)
 
-        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = format("%s/%s", target:scriptdir(), "xmake.lua"), source_batches = source_batches, header_files = header_files, target_file = target:targetfile() })
+        local target_file = target:targetfile()
+        target_file = path.absolute(target_file, project:directory())
+
+        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = format("%s/%s", target:scriptdir(), "xmake.lua"), source_batches = source_batches, header_files = header_files, target_file = target_file })
     end
     table.sort(targets, function(first, second) return first.name > second.name end)
+
+    output.targets = targets
 
     local project_files = {}
     for _, project_file in ipairs((project:allfiles())) do
         table.insert(project_files, project_file)
     end
+    output.project_files = project_files
 
     JSON_OUTPUT = [[
     {
@@ -201,4 +215,5 @@ function main ()
     targets_json = targets_to_json(targets)
 
     print(format(JSON_OUTPUT, version, project_files_json, targets_json))
+    -- print(json.encode(output))
 end

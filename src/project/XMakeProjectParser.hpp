@@ -32,9 +32,11 @@ namespace XMakeProjectManager::Internal {
                            ProjectExplorer::Project *project);
 
         void setXMakeTool(const Utils::Id &xmake) noexcept;
+
         bool configure(const Utils::FilePath &source_path,
                        const Utils::FilePath &build_path,
                        const QStringList &args);
+
         bool wipe(const Utils::FilePath &source_path,
                   const Utils::FilePath &build_path,
                   const QStringList &args);
@@ -53,6 +55,9 @@ namespace XMakeProjectManager::Internal {
         ProjectExplorer::RawProjectParts
             buildProjectParts(const ProjectExplorer::ToolChain *cxx_toolchain,
                               const ProjectExplorer::ToolChain *c_toolchain) const;
+
+        const Utils::FilePath &srcDir() const noexcept;
+        const Utils::FilePath &buildDir() const noexcept;
       Q_SIGNALS:
         void parsingCompleted(bool success);
 

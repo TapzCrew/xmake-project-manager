@@ -78,7 +78,7 @@ namespace XMakeProjectManager::Internal {
         qCDebug(xmake_build_system_log) << "Wipe";
 
         LOCK();
-        // TODO
+        // TODO implement wipe for xmake
 
         UNLOCK(false);
 
@@ -195,7 +195,7 @@ namespace XMakeProjectManager::Internal {
                   m_parser.buildProjectParts(kit_info.cxxToolChain, kit_info.cToolChain) });
         }
 
-        // setApplicationTargets(m_parser.appsTargets());
+        setApplicationTargets(m_parser.appTargets());
 
         UNLOCK(true);
 
