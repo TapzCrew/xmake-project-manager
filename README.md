@@ -1,4 +1,4 @@
-![CI](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml/badge.svg?branch=main)](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml)
+[![CI](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml/badge.svg?branch=main)](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml)
 
 This is some basic Meson build system integration for QtCreator (based on [QtCreator meson plugin](https://github.com/qt-creator/qt-creator/tree/master/src/plugins/mesonprojectmanager) implementation).
 
