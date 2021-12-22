@@ -1,18 +1,19 @@
-This is some basic Meson build system integration for QtCreator (based on QtCreator meson plugin implementation).
-status: [![CI](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml/badge.svg?branch=main)](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml)
+![CI](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml/badge.svg?branch=main)](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml)
+
+This is some basic Meson build system integration for QtCreator (based on [QtCreator meson plugin](https://github.com/qt-creator/qt-creator/tree/master/src/plugins/mesonprojectmanager) implementation).
 
 Currently implemented features:
-    - Show files in project:
-        - Subprojects
-        - CMake plugin like file view
-    - Basic build integration (XMake default backend only)
-    - Extract C++ code complemtion information from build directory
-    - Group files by target
+- Show files in project:
+  - Subprojects
+  - CMake plugin like file view
+- Basic build integration (XMake default backend only)
+- Extract C++ code complemtion information from build directory
+- Group files by target
     
 Not yet implemented:
-    - Support of build modes (debug, etc...)
-    - xmake.lua code completion
-    - Non-source file listing
+- Support of build modes (debug, etc...)
+- xmake.lua code completion
+- Non-source file listing
 
 # ArchLinux
 You can install this plugin from AUR with git and makepkg
