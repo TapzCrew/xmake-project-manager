@@ -39,7 +39,7 @@ namespace XMakeProjectManager::Internal {
         auto json_source_batches = json_target["source_batches"].toArray();
         target.sources           = extractSources(json_source_batches);
 
-        auto json_headers = json_target["headers"].toArray();
+        auto json_headers = json_target["header_files"].toArray();
         target.headers    = extractHeaders(json_headers);
 
         target.target_file = json_target["target_file"].toString();
@@ -63,7 +63,7 @@ namespace XMakeProjectManager::Internal {
         const auto source = json_source.toObject();
 
         return { json_source["kind"].toString(),
-                 json_source["files"].toVariant().toStringList(),
+                 json_source["source_files"].toVariant().toStringList(),
                  json_source["arguments"].toVariant().toStringList() };
     }
 

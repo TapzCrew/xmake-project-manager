@@ -214,10 +214,19 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProjectParser::processFinished(int code, QProcess::ExitStatus status) -> void {
-        qCDebug(xmake_project_parser_log)
-            << "Process " << m_process.currentCommand().toUserOutput()
-            << "finished with code: " << code << " status: " << status
-            << " output: " << QJsonDocument::fromJson(m_process.stdOut());
+        const auto json_output = [this] {
+            auto json = QJsonDocument::fromJson(m_process.stdOut());
+
+            auto str = QString::fromLocal8Bit(json.toJson());
+
+            if (str.size()) return str;
+
+            return QString::fromLocal8Bit(m_process.stdOut());
+        }();
+
+        qCDebug(xmake_project_parser_log) << "Process " << m_process.currentCommand().toUserOutput()
+                                          << "finished with code: " << code << " status: " << status
+                                          << " output: " << json_output;
 
         if (code != 0 || status != QProcess::NormalExit) {
             const auto &data = m_process.stdOut();

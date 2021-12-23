@@ -49,52 +49,26 @@ namespace XMakeProjectManager::Internal {
         using XMakeTargetNodePtr = XMakeTargetNode *;
         auto output_node         = XMakeTargetNodePtr { nullptr };
 
-        /*root->findNode(
-            [&output_node, &root, &target, path = Utils::FilePath::fromString(target.defined_in)](
-                ProjectExplorer::Node *node) {
-                if (node->filePath() == path.absolutePath()) {
-                    auto *as_folder = dynamic_cast<ProjectExplorer::FolderNode *>(node);
-                    if (as_folder) {
-                        auto target_node =
-                            std::make_unique<XMakeTargetNode>(path.absolutePath().pathAppended(
-                                                                  target.name),
-                                                              target.name,
-                                                              fromXMakeKind(target.kind));
-                        qCDebug(xmake_project_tree_log) << "Target node " << target_node->path()
-                                                        << " defined in" << target.defined_in;
-                        target_node->setDisplayName(target.name);
+        auto target_node =
+            std::make_unique<XMakeTargetNode>(Utils::FilePath::fromString(target.defined_in)
+                                                  .absolutePath(),
+                                              target.name,
+                                              fromXMakeKind(target.kind));
+        qCDebug(xmake_project_tree_log)
+            << "Target node " << target_node->path() << " defined in" << target.defined_in;
+        target_node->setDisplayName(target.name);
 
-                        output_node = target_node.get();
+        output_node = target_node.get();
 
-                        as_folder->addNode(std::move(target_node));
-                    }
-
-                    return true;
-                }
-
-                return false;
-            });*/
-
-        if (!output_node) {
-            auto target_node =
-                std::make_unique<XMakeTargetNode>(Utils::FilePath::fromString(target.defined_in)
-                                                      .absolutePath(),
-                                                  target.name,
-                                                  fromXMakeKind(target.kind));
-            qCDebug(xmake_project_tree_log)
-                << "Target node " << target_node->path() << " defined in" << target.defined_in;
-            target_node->setDisplayName(target.name);
-
-            output_node = target_node.get();
-
-            root->addNode(std::move(target_node));
-        }
+        root->addNode(std::move(target_node));
 
         return output_node;
     }
 
     auto findCommonPath(const QStringList &list) {
         if (std::empty(list)) return QString {};
+
+        qCDebug(xmake_project_tree_log) << list;
 
         auto dir_list = QStringList {};
         dir_list.reserve(std::size(list));
@@ -151,7 +125,12 @@ namespace XMakeProjectManager::Internal {
         std::transform(std::cbegin(sources_list),
                        std::cend(sources_list),
                        std::back_inserter(list),
-                       [](const auto &sources) { return findCommonPath(sources.sources); });
+                       [](const auto &sources) {
+                           qCDebug(xmake_project_tree_log)
+                               << "findCommonPath_sources_list" << sources.sources;
+
+                           return findCommonPath(sources.sources);
+                       });
 
         return findCommonDir(list);
     }

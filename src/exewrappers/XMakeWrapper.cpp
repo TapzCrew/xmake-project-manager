@@ -5,6 +5,7 @@
 #include <coreplugin/icore.h>
 #include <utils/qtcprocess.h>
 
+#include <QCryptographicHash>
 #include <QFile>
 #include <QFileInfo>
 #include <QStandardPaths>
@@ -99,13 +100,28 @@ namespace XMakeProjectManager::Internal {
                  options_cat("lua", "-P", source_directory.toString(), path) };
     }
 
+    auto fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)
+        -> QByteArray {
+        auto file = QFile { fileName };
+        if (file.open(QFile::ReadOnly)) {
+            auto hash = QCryptographicHash { hashAlgorithm };
+
+            if (hash.addData(&file)) { return hash.result(); }
+        }
+
+        return {};
+    }
+
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto extractQrcFileTo(QString input, QString output) -> void {
         QString name = QFileInfo { input }.fileName();
 
-        if (!QFileInfo::exists(output)) {
+        if (!QFileInfo::exists(output) || fileChecksum(input, QCryptographicHash::Sha256) !=
+                                              fileChecksum(output, QCryptographicHash::Sha256)) {
             qCDebug(xmake_xmake_wrapper_log) << QString { "Extracting %1 to %2" }.arg(name, output);
+
+            if (QFileInfo::exists(output)) QFile::remove(output);
 
             if (!QFile::copy(input, output)) {
                 qCDebug(xmake_xmake_wrapper_log) << QString { "Failed to extract %1" }.arg(name);
@@ -121,7 +137,6 @@ namespace XMakeProjectManager::Internal {
 
         auto introspect_path = dir.pathAppended("introspect.lua");
         extractQrcFileTo(":/xmakeproject/assets/introspect.lua", introspect_path.toString());
-        extractQrcFileTo(":/xmakeproject/assets/json.lua", dir.pathAppended("json.lua").toString());
 
         return introspect_path.toString();
     }
