@@ -29,6 +29,8 @@ namespace XMakeProjectManager::Internal {
 
         QString target_file;
 
+        QStringList languages; // for MSVC code model
+
         static QString fullName(const Utils::FilePath &srcDir,
                                 const QString &target_file,
                                 const QString &defined_in);

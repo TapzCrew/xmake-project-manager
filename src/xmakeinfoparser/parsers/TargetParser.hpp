@@ -27,6 +27,7 @@ namespace XMakeProjectManager::Internal {
         static Target::SourceGroupList extractSources(const QJsonArray &json_sources);
         static Target::SourceGroup extractSource(const QJsonValue &json_source);
         static QStringList extractHeaders(const QJsonArray &json_headers);
+        static QStringList extractLanguages(const QJsonArray &json_languages);
 
         TargetsList m_targets;
     };

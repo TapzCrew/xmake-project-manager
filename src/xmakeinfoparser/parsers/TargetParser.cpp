@@ -5,11 +5,15 @@
 #include <QJsonDocument>
 
 namespace XMakeProjectManager::Internal {
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     TargetParser::TargetParser(const QJsonDocument &json) {
         auto json_targets = get<QJsonArray>(json.object(), "targets");
         if (json_targets) m_targets = loadTargets(*json_targets);
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto TargetParser::loadTargets(const QJsonArray &json_targets) -> TargetsList {
         auto targets = TargetsList {};
         targets.reserve(json_targets.size());
@@ -22,6 +26,8 @@ namespace XMakeProjectManager::Internal {
         return targets;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto TargetParser::loadTarget(const QJsonValue &json_target) -> Target {
         auto json_target_obj = json_target.toObject();
 
@@ -44,9 +50,14 @@ namespace XMakeProjectManager::Internal {
 
         target.target_file = json_target["target_file"].toString();
 
+        auto json_languages = json_target["languages"].toArray();
+        target.languages    = extractLanguages(json_languages);
+
         return target;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto TargetParser::extractSources(const QJsonArray &json_sources) -> Target::SourceGroupList {
         auto sources = Target::SourceGroupList {};
         sources.reserve(std::size(json_sources));
@@ -59,6 +70,8 @@ namespace XMakeProjectManager::Internal {
         return sources;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto TargetParser::extractSource(const QJsonValue &json_source) -> Target::SourceGroup {
         const auto source = json_source.toObject();
 
@@ -67,6 +80,8 @@ namespace XMakeProjectManager::Internal {
                  json_source["arguments"].toVariant().toStringList() };
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto TargetParser::extractHeaders(const QJsonArray &json_headers) -> QStringList {
         auto headers = QStringList {};
         headers.reserve(std::size(json_headers));
@@ -77,5 +92,19 @@ namespace XMakeProjectManager::Internal {
                        [](const auto &v) { return v.toString(); });
 
         return headers;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto TargetParser::extractLanguages(const QJsonArray &json_languages) -> QStringList {
+        auto languages = QStringList {};
+        languages.reserve(std::size(json_languages));
+
+        std::transform(std::cbegin(json_languages),
+                       std::cend(json_languages),
+                       std::back_inserter(languages),
+                       [](const auto &v) { return v.toString(); });
+
+        return languages;
     }
 } // namespace XMakeProjectManager::Internal

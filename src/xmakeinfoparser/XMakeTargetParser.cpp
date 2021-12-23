@@ -4,6 +4,8 @@
 #include <utils/fileutils.h>
 
 namespace XMakeProjectManager::Internal {
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto Target::fullName(const Utils::FilePath &src_dir,
                           const QString &target_file,
                           const QString &defined_in) -> QString {

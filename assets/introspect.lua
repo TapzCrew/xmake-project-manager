@@ -25,56 +25,58 @@ function main ()
         local source_batches = {}
 
         for name, batch in pairs(target:sourcebatches()) do
-	    local source_files = {}
-	    for _, file in ipairs(batch.sourcefiles) do
-		file = path.absolute(file, project:directory()):gsub("%\\", "/")
-		table.insert(source_files, file)
-	    end
-
-	    local arguments = {}
-	    for _, file in ipairs(batch.sourcefiles) do
-		for i, argument in ipairs(compiler.compflags(file, {target = target})) do
-		    if string_starts(argument, "-I") then
-			local p = argument:sub(3, argument:len() - 2)
-			p = path.absolute(project:directory(), p):gsub("%\\", "/")
-
-			table.insert(arguments, format("-I%s", p))
-		    else
-			table.insert(arguments, argument)
-		    end
-		end
-                break
+            local source_files = {}
+            for _, file in ipairs(batch.sourcefiles) do
+                file = path.absolute(file, project:directory()):gsub("%\\", "/")
+                table.insert(source_files, file)
             end
 
-	    table.insert(source_batches, { kind = batch.sourcekind, source_files = source_files, arguments = arguments } )
+            local arguments = {}
+            for _, file in ipairs(batch.sourcefiles) do
+                for i, argument in ipairs(compiler.compflags(file, {target = target})) do
+                    if string_starts(argument, "-I") then
+                        local p = argument:sub(3, argument:len())
+                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                        table.insert(arguments, format("-I%s", p))
+                    else
+                        table.insert(arguments, argument)
+                    end
+                 end
+                 break
+            end
+
+            table.insert(source_batches, { kind = batch.sourcekind, source_files = source_files, arguments = arguments, languages = target:get("languages") } )
         end
 
         local header_files = {}
 
         for _, file in ipairs(target:headerfiles()) do
-	    file = path.absolute(file, project:directory()):gsub("%\\", "/")
-	    table.insert(header_files, file)
+            file = path.absolute(file, project:directory()):gsub("%\\", "/")
+            table.insert(header_files, file)
         end
 
         table.sort(header_files)
 
         local target_file = target:targetfile()
-	target_file = path.absolute(target_file, project:directory()):gsub("%\\", "/")
+        target_file = path.absolute(target_file, project:directory()):gsub("%\\", "/")
 
-	local defined_in = path.absolute("xmake.lua", target:scriptdir()):gsub("%\\", "/")
+        local defined_in = path.absolute("xmake.lua", target:scriptdir()):gsub("%\\", "/")
 
-	table.insert(targets, { name = name, kind = target:targetkind(), defined_in = defined_in, source_batches = source_batches, header_files = header_files, target_file = target_file })
+        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = defined_in, source_batches = source_batches, header_files = header_files, target_file = target_file })
     end
+
     table.sort(targets, function(first, second) return first.name > second.name end)
 
     output.targets = targets
 
     local project_files = {}
     for _, project_file in ipairs((project:allfiles())) do
-	project_file = project_file:gsub("%\\", "/")
-	table.insert(project_files, project_file)
+        project_file = project_file:gsub("%\\", "/")
+        table.insert(project_files, project_file)
     end
     output.project_files = project_files
+
 
     print(json.encode(output))
 end
