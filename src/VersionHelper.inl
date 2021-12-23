@@ -14,7 +14,8 @@ namespace XMakeProjectManager::Internal {
         return QString { QStringLiteral("%1.%2.%3") }.arg(m_major, m_minor, m_patch);
     }
 
-    inline auto Version::fromString(QStringView str) -> Version {
+    inline auto Version::fromString(const QString& str) -> Version
+    {
         static const auto regex = QRegularExpression { R"((\d+).(\d+).(\d+))" };
 
         const auto matched = regex.match(str);

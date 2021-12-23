@@ -159,7 +159,7 @@ namespace XMakeProjectManager::Internal {
 
         for (const auto &target : m_parser_result.targets) {
             if (target.kind == Target::Kind::BINARY) {
-                auto &target_info = apps.emplace_back();
+                ProjectExplorer::BuildTargetInfo target_info;
 
                 auto target_file = m_src_dir.resolvePath(target.target_file).path();
 
@@ -171,6 +171,7 @@ namespace XMakeProjectManager::Internal {
                     Utils::FilePath::fromString(target_file).absolutePath();
                 target_info.projectFilePath = Utils::FilePath::fromString(target.defined_in);
                 target_info.usesTerminal    = true;
+                apps.append(target_info);
             }
         }
 

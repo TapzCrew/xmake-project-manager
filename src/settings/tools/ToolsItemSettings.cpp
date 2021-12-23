@@ -55,4 +55,4 @@ namespace XMakeProjectManager::Internal {
     }
 } // namespace XMakeProjectManager::Internal
 
-#include "ToolsItemSettings.moc"
+//#include "ToolsItemSettings.moc"

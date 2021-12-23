@@ -29,7 +29,7 @@ namespace XMakeProjectManager::Internal {
       private:
         void pushLine(const QString &line);
 
-        Result processErrors(QStringView line);
+        Result processErrors(const QString& line);
 
         void addTask(ProjectExplorer::Task::TaskType type, QStringView line);
         void addTask(ProjectExplorer::Task task);

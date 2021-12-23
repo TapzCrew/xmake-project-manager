@@ -63,4 +63,4 @@ namespace XMakeProjectManager::Internal {
     }
 } // namespace XMakeProjectManager::Internal
 
-#include "XMakeProject.moc"
+//#include "XMakeProject.moc"

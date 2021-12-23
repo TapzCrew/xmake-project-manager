@@ -44,7 +44,8 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeBuildParser::extractProgress(QStringView line) -> Utils::optional<int> {
+    auto XMakeBuildParser::extractProgress(const QString& line) -> Utils::optional<int>
+    {
         auto progress = m_progress_regex.match(line);
 
         if (progress.hasMatch()) return progress.captured(1).toInt();

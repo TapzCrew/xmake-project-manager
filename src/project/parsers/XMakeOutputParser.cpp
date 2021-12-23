@@ -49,7 +49,7 @@ namespace XMakeProjectManager::Internal {
     auto XMakeOutputParser::pushLine(const QString &line) -> void {
         m_remaining_lines--;
 
-        m_pending_lines.emplace_back(line);
+        m_pending_lines.push_back(line);
 
         if (m_remaining_lines == 0) {
             addTask(ProjectExplorer::Task::TaskType::Error, m_pending_lines.join('\n'));
@@ -59,7 +59,8 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeOutputParser::processErrors(QStringView line) -> Result {
+    auto XMakeOutputParser::processErrors(const QString& line) -> Result
+    {
         auto options_errors = m_options_errors_regex.match(line);
         if (options_errors.hasMatch()) {
             addTask(ProjectExplorer::Task::TaskType::Error, line);

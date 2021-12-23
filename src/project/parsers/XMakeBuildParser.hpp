@@ -28,17 +28,17 @@ namespace XMakeProjectManager::Internal {
         void reportProgress(int progress);
 
       private:
-        Utils::optional<int> extractProgress(QStringView line);
-        LinkSpecs addTask(ProjectExplorer::Task::TaskType type,
-                          const QRegularExpressionMatch &match,
-                          int file_cap_index,
-                          int line_number_cap_index,
-                          int char_number_cap_index,
-                          int error_cap_index);
+          Utils::optional<int> extractProgress(const QString& line);
+          LinkSpecs addTask(ProjectExplorer::Task::TaskType type,
+              const QRegularExpressionMatch& match,
+              int file_cap_index,
+              int line_number_cap_index,
+              int char_number_cap_index,
+              int error_cap_index);
 
-        // error: test/main.cpp:12:3: error: ‘a’ was not declared in this scope
-        const QRegularExpression m_progress_regex { R"(^\[\s*(\d+)\%\])" };
-        const QRegularExpression m_error_regex { R"(error: (.*):(\d+):(\d+): error: (.*))" };
+          // error: test/main.cpp:12:3: error: ‘a’ was not declared in this scope
+          const QRegularExpression m_progress_regex { R"(^\[\s*(\d+)\%\])" };
+          const QRegularExpression m_error_regex { R"(error: (.*):(\d+):(\d+): error: (.*))" };
     };
 } // namespace XMakeProjectManager::Internal
 

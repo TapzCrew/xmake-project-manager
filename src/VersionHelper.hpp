@@ -10,7 +10,7 @@ namespace XMakeProjectManager::Internal {
         Version(int major, int minor, int patch);
 
         QString toQString() const noexcept;
-        static Version fromString(QStringView str);
+        static Version fromString(const QString& str);
 
         int major() const noexcept;
         int minor() const noexcept;
