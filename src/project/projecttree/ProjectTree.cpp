@@ -5,6 +5,8 @@
 
 #include <set>
 
+#include <QLoggingCategory>
+
 namespace XMakeProjectManager::Internal {
     static Q_LOGGING_CATEGORY(xmake_project_tree_log, "qtc.xmake.projecttree", QtDebugMsg);
 
