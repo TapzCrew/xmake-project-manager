@@ -25,6 +25,8 @@ namespace XMakeProjectManager::Internal {
         setInitializer([this, target](const auto &info) {
             m_build_type = xmakeBuildType(info.typeName);
 
+            m_parameters = QString { "-m %1" }.arg(info.typeName);
+
             auto *kit = target->kit();
             if (info.buildDirectory.isEmpty())
                 setBuildDirectory(shadowBuildDirectory(target->project()->projectFilePath(),
@@ -148,8 +150,20 @@ namespace XMakeProjectManager::Internal {
             auto path =
                 for_setup ? ProjectExplorer::Project::projectDirectory(project_path) : project_path;
 
-            for (const auto &b_type :
-                 { XMakeBuildType::Plain, XMakeBuildType::Debug, XMakeBuildType::Release }) {
+            for (const auto &b_type : { XMakeBuildType::Debug,
+                                        XMakeBuildType::Release,
+                                        XMakeBuildType::Release_Dbg,
+                                        XMakeBuildType::Min_Size_Rel,
+                                        XMakeBuildType::Check,
+                                        XMakeBuildType::Profile,
+                                        XMakeBuildType::Coverage,
+#ifndef Q_OS_WINDOWS
+                                        XMakeBuildType::Valgrind,
+#endif
+                                        XMakeBuildType::Asan,
+                                        XMakeBuildType::Tsan,
+                                        XMakeBuildType::Lsan,
+                                        XMakeBuildType::Ubsan }) {
                 auto b_info = createBuildInfo(b_type);
 
                 if (for_setup)

@@ -1,5 +1,7 @@
 [![CI](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml/badge.svg)](https://github.com/Arthapz/xmake-project-manager/actions/workflows/build_cmake.yml)
 
+!! This project is in early stage, do not use in production !!
+
 This is some basic XMake build system integration for QtCreator (based on [QtCreator meson plugin](https://github.com/qt-creator/qt-creator/tree/master/src/plugins/mesonprojectmanager) implementation).
 
 Currently implemented features:
@@ -9,9 +11,9 @@ Currently implemented features:
 - Basic build integration (XMake default backend only)
 - Extract C++ code complemtion information from build directory
 - Group files by target
+- Support of build modes (debug, etc... ; build modes need to be enabled in your xmake.lua)
     
 Not yet implemented:
-- Support of build modes (debug, etc...)
 - xmake.lua code completion
 - Non-source file listing
 

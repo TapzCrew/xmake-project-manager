@@ -1,12 +1,16 @@
 #pragma once
 
-#include <QStringView>
+#include <QStringList>
 
 #include <xmakeinfoparser/XMakeInfo.hpp>
 #include <xmakeinfoparser/XMakeTargetParser.hpp>
 
 #include <utils/fileutils.h>
 #include <utils/optional.h>
+
+QT_BEGIN_NAMESPACE
+class QByteArray;
+QT_END_NAMESPACE
 
 namespace XMakeProjectManager::Internal {
     class XmakeInfoParserPrivate;

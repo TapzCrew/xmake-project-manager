@@ -231,8 +231,7 @@ namespace XMakeProjectManager::Internal {
 
         const auto parent_id = bsl->id();
 
-        if (parent_id == ProjectExplorer::Constants::BUILDSTEPS_CLEAN)
-            return QString::fromLatin1(Constants::Targets::CLEAN);
+        if (parent_id == ProjectExplorer::Constants::BUILDSTEPS_CLEAN) return "";
 
         return QString::fromLatin1(Constants::Targets::ALL);
     }

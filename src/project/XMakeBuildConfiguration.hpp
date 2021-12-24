@@ -6,7 +6,20 @@
 #include <QStringView>
 
 namespace XMakeProjectManager::Internal {
-    enum class XMakeBuildType { Debug, Release, Plain };
+    enum class XMakeBuildType {
+        Debug,
+        Release,
+        Release_Dbg,
+        Min_Size_Rel,
+        Check,
+        Profile,
+        Coverage,
+        Valgrind,
+        Asan,
+        Tsan,
+        Lsan,
+        Ubsan
+    };
 
     QString xmakeBuildTypeName(XMakeBuildType type);
 
