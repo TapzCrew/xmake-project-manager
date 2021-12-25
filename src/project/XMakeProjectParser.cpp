@@ -37,7 +37,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto extractInclude(const QString &arg) -> Utils::optional<QString> {
-        return extractValueIfMatches(arg, { "-I", "/I", "-isystem", "-imsvc", "/imsvc" });
+        return extractValueIfMatches(arg, { "-I", "/I", "-isystem ", "-imsvc ", "/imsvc " });
     }
 
     ////////////////////////////////////////////////////

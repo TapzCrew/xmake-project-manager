@@ -8,16 +8,15 @@ function string_starts(String,Start)
    return string.sub(String,1,string.len(Start))==Start
 end
 
-
 -- main entry
 function main ()
     local output = {}
 
     -- load config
     config.load()
-
     -- add version info
     output.version = format("%s", xmake.version())
+    -- add package infos
 
     -- add targets data
     local targets = {}
@@ -33,20 +32,34 @@ function main ()
 
             local arguments = {}
             for _, file in ipairs(batch.sourcefiles) do
-                for i, argument in ipairs(compiler.compflags(file, {target = target})) do
+                local args = compiler.compflags(file, {target = target})
+
+                local ignore_next_arg = false
+
+                for i, argument in ipairs(args) do
+                    if ignore_next_arg then
+                        ignore_next_arg = false
+                        goto continue
+                    end
+
                     if string_starts(argument, "-I") then
                         local p = argument:sub(3, argument:len())
                         p = path.absolute(p, project:directory()):gsub("%\\", "/")
 
                         table.insert(arguments, format("-I%s", p))
+                    elseif(string_starts(argument, "-isystem")) then
+                        table.insert(arguments, argument .. " ".. args[i + 1])
+                        ignore_next_arg = true
                     else
                         table.insert(arguments, argument)
                     end
+
+                    ::continue::
                  end
                  break
             end
 
-            table.insert(source_batches, { kind = batch.sourcekind, source_files = source_files, arguments = arguments, languages = target:get("languages") } )
+            table.insert(source_batches, { kind = batch.sourcekind, source_files = source_files, arguments = arguments, languages = target:get("languages"), packages = target:get("packages") } )
         end
 
         local header_files = {}
