@@ -38,9 +38,10 @@ namespace XMakeProjectManager::Internal {
         setLayouter([](auto *widget) {
             auto &settings = *Settings::instance();
 
-            using namespace Utils::Layouting;
-
-            Column { settings.autorunXMake(), Stretch {} }.attachTo(widget);
+            Utils::Layouting::Column {
+                settings.autorunXMake(),
+                Utils::Layouting::Stretch {}
+            }.attachTo(widget);
         });
     }
 

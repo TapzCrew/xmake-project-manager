@@ -10,6 +10,8 @@
 namespace XMakeProjectManager::Internal {
     static Q_LOGGING_CATEGORY(xmake_project_tree_log, "qtc.xmake.projecttree", QtDebugMsg);
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto fromXMakeKind(Target::Kind kind) -> ProjectExplorer::ProductType {
         switch (kind) {
             case Target::Kind::BINARY: return ProjectExplorer::ProductType::App;
@@ -22,9 +24,9 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto buildTargetSourceTree(ProjectExplorer::VirtualFolderNode *node, const Target &target)
-        -> void {
-        for (const auto &group : target.sources) {
+    auto buildTargetSourceTree(ProjectExplorer::VirtualFolderNode *node,
+                               const Target::SourceGroupList &sources) -> void {
+        for (const auto &group : sources) {
             for (const auto &file : group.sources) {
                 qCDebug(xmake_project_tree_log) << "Source node " << file;
                 node->addNestedNode(
@@ -34,9 +36,9 @@ namespace XMakeProjectManager::Internal {
         }
     }
 
-    auto buildTargetHeaderTree(ProjectExplorer::VirtualFolderNode *node, const Target &target)
+    auto buildTargetHeaderTree(ProjectExplorer::VirtualFolderNode *node, const QStringList &headers)
         -> void {
-        for (const auto &file : target.headers) {
+        for (const auto &file : headers) {
             qCDebug(xmake_project_tree_log) << "Header node " << file;
             node->addNestedNode(
                 std::make_unique<ProjectExplorer::FileNode>(Utils::FilePath::fromString(file),
@@ -49,7 +51,7 @@ namespace XMakeProjectManager::Internal {
     auto addTargetNode(std::unique_ptr<XMakeProjectNode> &root, const Target &target)
         -> XMakeTargetNode * {
         using XMakeTargetNodePtr = XMakeTargetNode *;
-        auto output_node         = XMakeTargetNodePtr { nullptr };
+        auto *output_node        = XMakeTargetNodePtr { nullptr };
 
         auto target_node =
             std::make_unique<XMakeTargetNode>(Utils::FilePath::fromString(target.defined_in)
@@ -67,6 +69,8 @@ namespace XMakeProjectManager::Internal {
         return output_node;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto findCommonPath(const QStringList &list) {
         if (std::empty(list)) return QString {};
 
@@ -99,6 +103,8 @@ namespace XMakeProjectManager::Internal {
         return root;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto findCommonDir(const QStringList &list) {
         if (std::empty(list)) return QString {};
 
@@ -120,9 +126,11 @@ namespace XMakeProjectManager::Internal {
         return root;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto findCommonPath(const Target::SourceGroupList &sources_list) -> QString {
         auto list = QStringList {};
-        list.reserve(std::size(sources_list));
+        list.reserve(static_cast<qsizetype>(std::size(sources_list)));
 
         std::transform(std::cbegin(sources_list),
                        std::cend(sources_list),
@@ -135,6 +143,26 @@ namespace XMakeProjectManager::Internal {
                        });
 
         return findCommonDir(list);
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto createVirtualNode(const QString &common_path, const QString &name)
+        -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
+        if (common_path.size() <= 0) return nullptr;
+
+        auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(
+            Utils::FilePath::fromString(common_path));
+
+        qCDebug(xmake_project_tree_log)
+            << QString { "Virtual node '%1' %2" }.arg(name, node->path().toUserOutput());
+        node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
+        node->setDisplayName(name);
+        node->setIsSourcesOrHeaders(true);
+        node->setListInProject(false);
+        node->setIcon([] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
+
+        return node;
     }
 
     ////////////////////////////////////////////////////
@@ -153,41 +181,39 @@ namespace XMakeProjectManager::Internal {
 
         qCDebug(xmake_project_tree_log) << targets.size() << "target(s) found";
         for (const auto &target : targets) {
+            auto sources = target.sources;
+
             auto *parent = addTargetNode(root, target);
 
-            auto common_path = findCommonPath(target.sources);
-            auto node        = std::unique_ptr<ProjectExplorer::VirtualFolderNode> {};
-            if (common_path.size() > 0) {
-                node = std::make_unique<ProjectExplorer::VirtualFolderNode>(
-                    Utils::FilePath::fromString(common_path));
-                qCDebug(xmake_project_tree_log) << "Virtual sources node " << node->path();
-                node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
-                node->setDisplayName("Source Files");
-                node->setIsSourcesOrHeaders(true);
-                node->setListInProject(false);
-                node->setIcon(
-                    [] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
+            auto modules_it =
+                std::find_if(std::cbegin(sources), std::cend(sources), [](const auto &batch) {
+                    return batch.language == "cxxmodule";
+                });
 
-                buildTargetSourceTree(node.get(), target);
+            auto modules = Target::SourceGroupList {};
+            if (modules_it != std::cend(sources)) {
+                modules.emplace_back(*modules_it);
 
+                sources.erase(modules_it);
+            }
+
+            auto node = createVirtualNode(findCommonPath(sources), "Source Files");
+            if (node) {
+                buildTargetSourceTree(node.get(), sources);
                 parent->addNode(std::move(node));
             }
 
-            common_path = findCommonPath(target.headers);
+            if (!std::empty(modules)) {
+                node = createVirtualNode(findCommonPath(modules), "Module Files");
+                if (node) {
+                    buildTargetSourceTree(node.get(), modules);
+                    parent->addNode(std::move(node));
+                }
+            }
 
-            if (common_path.size() > 0) {
-                node = std::make_unique<ProjectExplorer::VirtualFolderNode>(
-                    Utils::FilePath::fromString(common_path));
-                qCDebug(xmake_project_tree_log) << "Virtual headers node " << node->path();
-                node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
-                node->setDisplayName("Header Files");
-                node->setIsSourcesOrHeaders(true);
-                node->setListInProject(false);
-                node->setIcon(
-                    [] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
-
-                buildTargetHeaderTree(node.get(), target);
-
+            node = createVirtualNode(findCommonPath(target.headers), "Header Files");
+            if (node) {
+                buildTargetHeaderTree(node.get(), target.headers);
                 parent->addNode(std::move(node));
             }
 
@@ -202,7 +228,7 @@ namespace XMakeProjectManager::Internal {
                 qCDebug(xmake_project_tree_log) << node->filePath();
                 if (node->filePath() == bs_file.absolutePath()) {
                     auto *as_folder = dynamic_cast<ProjectExplorer::FolderNode *>(node);
-                    if (as_folder) {
+                    if (as_folder != nullptr) {
                         auto project_file_node = std::make_unique<ProjectExplorer::FileNode>(
                             bs_file,
                             ProjectExplorer::FileType::Project);

@@ -4,8 +4,12 @@ import("core.project.project")
 import("core.tool.compiler")
 import("core.base.json")
 
-function string_starts(String,Start)
-   return string.sub(String,1,string.len(Start))==Start
+function string_starts(string,start)
+   return string.sub(string, 1, string.len(start)) == start
+end
+
+function string_ends(string, ends)
+   return string.sub(string, -string.len(ends)) == ends
 end
 
 -- main entry
@@ -23,7 +27,14 @@ function main ()
     for name, target in pairs((project:targets())) do
         local source_batches = {}
 
-        for name, batch in pairs(target:sourcebatches()) do
+        local target_sourcebatches = {}
+        for _, batch in pairs(target:sourcebatches()) do
+            table.insert(target_sourcebatches, batch)
+        end
+        table.sort(target_sourcebatches, function (first, second) return first.rulename < second.rulename end)
+
+        local last_cxx_arguments = {}
+        for name, batch in ipairs(target_sourcebatches) do
             local source_files = {}
             for _, file in ipairs(batch.sourcefiles) do
                 file = path.absolute(file, project:directory()):gsub("%\\", "/")
@@ -32,6 +43,16 @@ function main ()
 
             local arguments = {}
             for _, file in ipairs(batch.sourcefiles) do
+                if string_ends(file, ".mpp") or string_ends(file, ".ixx") or string_ends(file, ".cppm") or string_ends(file, ".mxx") then -- can't do better for now with C++20 modules
+                   arguments = last_cxx_arguments
+                   if compiler.has_flags("cxx", "-fmodules-ts") then
+                       table.insert(arguments, "-fmodules-ts")
+                   elseif compiler.has_flags("cxx", "-fmodules") then
+                       table.insert(arguments, "-fmodules-ts")
+                   end
+                   break
+                end
+
                 local args = compiler.compflags(file, {target = target})
 
                 local ignore_next_arg = false
@@ -39,7 +60,7 @@ function main ()
                 for i, argument in ipairs(args) do
                     if ignore_next_arg then
                         ignore_next_arg = false
-                        goto continue
+                        goto continue2
                     end
 
                     if string_starts(argument, "-I") then
@@ -54,12 +75,25 @@ function main ()
                         table.insert(arguments, argument)
                     end
 
-                    ::continue::
+                    ::continue2::
+                 end
+
+                 if batch.sourcekind and batch.sourcekind == "cxx" then
+                    last_cxx_arguments = arguments
                  end
                  break
             end
 
-            table.insert(source_batches, { kind = batch.sourcekind, source_files = source_files, arguments = arguments, languages = target:get("languages"), packages = target:get("packages") } )
+            kind = ""
+            if batch.rulename == "c++.build.modules" then
+                kind = "cxxmodule"
+            elseif batch.sourcekind then
+                kind = batch.sourcekind
+            else
+                kind = "unknown"
+            end
+
+            table.insert(source_batches, { kind = kind, source_files = source_files, arguments = arguments, languages = target:get("languages"), packages = target:get("packages") } )
         end
 
         local header_files = {}

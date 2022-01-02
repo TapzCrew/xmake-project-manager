@@ -75,9 +75,9 @@ namespace XMakeProjectManager::Internal {
     auto TargetParser::extractSource(const QJsonValue &json_source) -> Target::SourceGroup {
         const auto source = json_source.toObject();
 
-        return { json_source["kind"].toString(),
-                 json_source["source_files"].toVariant().toStringList(),
-                 json_source["arguments"].toVariant().toStringList() };
+        return { source["kind"].toString(),
+                 source["source_files"].toVariant().toStringList(),
+                 source["arguments"].toVariant().toStringList() };
     }
 
     ////////////////////////////////////////////////////

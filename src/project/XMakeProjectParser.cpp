@@ -310,7 +310,8 @@ namespace XMakeProjectManager::Internal {
         part.setIncludePaths(flags.include_paths);
         part.setMacros(flags.macros);
 
-        if (sources.language == "cxx") part.setFlagsForCxx({ cxx_toolchain, flags.arguments, {} });
+        if (sources.language == "cxx" || sources.language == "cxxmodule")
+            part.setFlagsForCxx({ cxx_toolchain, flags.arguments, {} });
         else if (sources.language == "cc")
             part.setFlagsForC({ c_toolchain, flags.arguments, {} });
 
