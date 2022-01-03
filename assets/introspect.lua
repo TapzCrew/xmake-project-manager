@@ -49,6 +49,8 @@ function main ()
                        table.insert(arguments, "-fmodules-ts")
                    elseif compiler.has_flags("cxx", "-fmodules") then
                        table.insert(arguments, "-fmodules-ts")
+                   elseif compiler.has_flags("cxx", "/experimental:module") then
+                       table.insert(arguments, "/experimental:module")
                    end
                    break
                 end

@@ -14,6 +14,9 @@ namespace XMakeProjectManager::Internal {
         m_autorun_xmake.setSettingsKey("xmake.autorun");
         m_autorun_xmake.setLabelText(tr("Autorun XMake"));
         m_autorun_xmake.setToolTip(tr("Automatically run XMake when needed."));
+
+        m_accept_install_dependencies.setSettingsKey("xmake.accept_install_dependencies");
+        m_accept_install_dependencies.setLabelText(tr("Accept dependencies install"));
     }
 
     ////////////////////////////////////////////////////
@@ -40,6 +43,7 @@ namespace XMakeProjectManager::Internal {
 
             Utils::Layouting::Column {
                 settings.autorunXMake(),
+                settings.acceptInstallDependencies(),
                 Utils::Layouting::Stretch {}
             }.attachTo(widget);
         });

@@ -27,21 +27,46 @@ namespace XMakeProjectManager::Internal {
     auto buildTargetSourceTree(ProjectExplorer::VirtualFolderNode *node,
                                const Target::SourceGroupList &sources) -> void {
         for (const auto &group : sources) {
-            for (const auto &file : group.sources) {
-                qCDebug(xmake_project_tree_log) << "Source node " << file;
+            for (const auto &filename : group.sources) {
+                auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
+
+                qCDebug(xmake_project_tree_log) << "Source node" << file.parentDir().toUserOutput();
                 node->addNestedNode(
-                    std::make_unique<ProjectExplorer::FileNode>(Utils::FilePath::fromString(file),
-                                                                ProjectExplorer::FileType::Source));
+                    std::make_unique<ProjectExplorer::FileNode>(file,
+                                                                ProjectExplorer::FileType::Source),
+                    {},
+                    [](const Utils::FilePath &fn) {
+                        qCDebug(xmake_project_tree_log) << "Folder node" << fn;
+                        return std::make_unique<ProjectExplorer::FolderNode>(fn);
+                    });
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto buildTargetModuleTree(ProjectExplorer::VirtualFolderNode *node,
+                               const Target::SourceGroupList &sources) -> void {
+        for (const auto &group : sources) {
+            for (const auto &filename : group.sources) {
+                auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
+
+                qCDebug(xmake_project_tree_log) << "Module node" << file.toUserOutput();
+                node->addNestedNode(
+                    std::make_unique<ProjectExplorer::FileNode>(file,
+                                                                ProjectExplorer::FileType::Header));
             }
         }
     }
 
     auto buildTargetHeaderTree(ProjectExplorer::VirtualFolderNode *node, const QStringList &headers)
         -> void {
-        for (const auto &file : headers) {
-            qCDebug(xmake_project_tree_log) << "Header node " << file;
+        for (const auto &filename : headers) {
+            auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
+
+            qCDebug(xmake_project_tree_log) << "Header node" << file.toUserOutput();
             node->addNestedNode(
-                std::make_unique<ProjectExplorer::FileNode>(Utils::FilePath::fromString(file),
+                std::make_unique<ProjectExplorer::FileNode>(file,
                                                             ProjectExplorer::FileType::Header));
         }
     }
@@ -59,7 +84,8 @@ namespace XMakeProjectManager::Internal {
                                               target.name,
                                               fromXMakeKind(target.kind));
         qCDebug(xmake_project_tree_log)
-            << "Target node " << target_node->path() << " defined in" << target.defined_in;
+            << "Target node " << target_node->path().toUserOutput() << " defined in"
+            << Utils::FilePath::fromString(target.defined_in).toUserOutput();
         target_node->setDisplayName(target.name);
 
         output_node = target_node.get();
@@ -135,12 +161,7 @@ namespace XMakeProjectManager::Internal {
         std::transform(std::cbegin(sources_list),
                        std::cend(sources_list),
                        std::back_inserter(list),
-                       [](const auto &sources) {
-                           qCDebug(xmake_project_tree_log)
-                               << "findCommonPath_sources_list" << sources.sources;
-
-                           return findCommonPath(sources.sources);
-                       });
+                       [](const auto &sources) { return findCommonPath(sources.sources); });
 
         return findCommonDir(list);
     }
@@ -152,7 +173,7 @@ namespace XMakeProjectManager::Internal {
         if (common_path.size() <= 0) return nullptr;
 
         auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(
-            Utils::FilePath::fromString(common_path));
+            Utils::FilePath::fromString(common_path).absoluteFilePath());
 
         qCDebug(xmake_project_tree_log)
             << QString { "Virtual node '%1' %2" }.arg(name, node->path().toUserOutput());
@@ -206,7 +227,7 @@ namespace XMakeProjectManager::Internal {
             if (!std::empty(modules)) {
                 node = createVirtualNode(findCommonPath(modules), "Module Files");
                 if (node) {
-                    buildTargetSourceTree(node.get(), modules);
+                    buildTargetModuleTree(node.get(), modules);
                     parent->addNode(std::move(node));
                 }
             }
@@ -230,9 +251,10 @@ namespace XMakeProjectManager::Internal {
                     auto *as_folder = dynamic_cast<ProjectExplorer::FolderNode *>(node);
                     if (as_folder != nullptr) {
                         auto project_file_node = std::make_unique<ProjectExplorer::FileNode>(
-                            bs_file,
+                            bs_file.absoluteFilePath(),
                             ProjectExplorer::FileType::Project);
-                        qCDebug(xmake_project_tree_log) << "Project file node " << bs_file.path();
+                        qCDebug(xmake_project_tree_log)
+                            << "Project file node " << bs_file.toUserOutput();
 
                         as_folder->addNode(std::move(project_file_node));
                     }

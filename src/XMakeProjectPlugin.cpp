@@ -57,12 +57,12 @@ namespace XMakeProjectManager::Internal {
         ToolsSettingsAccessor m_tools_settings;
         XMakeToolKitAspect m_kit_aspect;
 
+        XMakeBuildStepFactory m_build_step_factory;
+
         XMakeBuildConfigurationFactory m_build_configuration_factory;
         XMakeRunConfigurationFactory m_run_configuration_factory;
 
         XMakeActionsManager m_actions_manager;
-
-        XMakeBuildStepFactory m_build_step_factory;
 
         ProjectExplorer::RunWorkerFactory m_xmake_run_worker_factory;
     };

@@ -2,6 +2,8 @@
 
 #include <XMakeProjectConstant.hpp>
 
+#include <settings/general/Settings.hpp>
+
 #include <coreplugin/icore.h>
 #include <utils/qtcprocess.h>
 
@@ -80,6 +82,9 @@ namespace XMakeProjectManager::Internal {
     auto XMakeWrapper::configure(const Utils::FilePath &source_directory,
                                  const Utils::FilePath &build_directory,
                                  const QStringList &options) const -> Command {
+        QStringList _options = options;
+        if (Settings::instance()->acceptInstallDependencies().value())
+            _options.emplace_back("--yes");
         return { m_exe,
                  Utils::FilePath::fromString(QDir::rootPath()), // source_directory,
                  options_cat("f",
@@ -87,7 +92,7 @@ namespace XMakeProjectManager::Internal {
                              source_directory.toString(),
                              "-o",
                              build_directory.toString(),
-                             options) };
+                             _options) };
     }
 
     ////////////////////////////////////////////////////
