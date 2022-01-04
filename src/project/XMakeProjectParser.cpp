@@ -20,7 +20,7 @@ namespace XMakeProjectManager::Internal {
 
     struct CompilerArgs {
         QStringList arguments;
-        QStringList include_paths;
+        ProjectExplorer::HeaderPaths include_paths;
         ProjectExplorer::Macros macros;
     };
 
@@ -36,8 +36,14 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto extractInclude(const QString &arg) -> Utils::optional<QString> {
-        return extractValueIfMatches(arg, { "-I", "/I", "-isystem ", "-imsvc ", "/imsvc " });
+    auto extractInclude(const QString &arg) -> Utils::optional<ProjectExplorer::HeaderPath> {
+        auto path = extractValueIfMatches(arg, { "-I", "/I", "-imsvc ", "/imsvc " });
+        if (path) return ProjectExplorer::HeaderPath::makeUser(*path);
+
+        path = extractValueIfMatches(arg, { "-isystem ", "/external:I" });
+        if (path) return ProjectExplorer::HeaderPath::makeSystem(*path);
+
+        return Utils::nullopt;
     }
 
     ////////////////////////////////////////////////////
@@ -62,10 +68,10 @@ namespace XMakeProjectManager::Internal {
         for (const QString &arg : args) {
             auto inc = extractInclude(arg);
             if (inc) {
-                auto path = Utils::FilePath::fromString(*inc);
-                if (!path.isAbsolutePath()) path = src_dir.resolvePath(*inc);
+                auto path = Utils::FilePath::fromString(inc->path);
+                if (!path.isAbsolutePath()) path = src_dir.resolvePath(path);
 
-                splited.include_paths << path.path();
+                splited.include_paths << ProjectExplorer::HeaderPath { path.path(), inc->type };
             } else {
                 auto macro = extractMacro(arg);
                 if (macro) splited.macros << *macro;
@@ -307,13 +313,17 @@ namespace XMakeProjectManager::Internal {
 
         auto flags = splitArgs(sources.arguments, m_src_dir);
 
-        part.setIncludePaths(flags.include_paths);
+        part.setHeaderPaths(flags.include_paths);
         part.setMacros(flags.macros);
 
         if (sources.language == "cxx" || sources.language == "cxxmodule")
             part.setFlagsForCxx({ cxx_toolchain, flags.arguments, {} });
         else if (sources.language == "cc")
             part.setFlagsForC({ c_toolchain, flags.arguments, {} });
+
+        part.setBuildTargetType((target.kind == Target::Kind::BINARY)
+                                    ? ProjectExplorer::BuildTargetType::Executable
+                                    : ProjectExplorer::BuildTargetType::Library);
 
         return part;
     }
