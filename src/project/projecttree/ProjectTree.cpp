@@ -30,7 +30,7 @@ namespace XMakeProjectManager::Internal {
             for (const auto &filename : group.sources) {
                 auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
 
-                qCDebug(xmake_project_tree_log) << "Source node" << file.parentDir().toUserOutput();
+                qCDebug(xmake_project_tree_log) << "Source node" << file.toUserOutput();
                 node->addNestedNode(
                     std::make_unique<ProjectExplorer::FileNode>(file,
                                                                 ProjectExplorer::FileType::Source),
@@ -47,16 +47,21 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto buildTargetModuleTree(ProjectExplorer::VirtualFolderNode *node,
                                const Target::SourceGroupList &sources) -> void {
+        auto nodes = std::vector<std::unique_ptr<ProjectExplorer::FileNode>> {};
         for (const auto &group : sources) {
             for (const auto &filename : group.sources) {
                 auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
 
-                qCDebug(xmake_project_tree_log) << "Module node" << file.toUserOutput();
-                node->addNestedNode(
+                qCDebug(xmake_project_tree_log) << "Module node" << filename;
+                nodes.emplace_back(
                     std::make_unique<ProjectExplorer::FileNode>(file,
                                                                 ProjectExplorer::FileType::Header));
             }
         }
+
+        node->addNestedNodes(std::move(nodes));
+
+        for (auto *n : node->folderNodes()) n->compress();
     }
 
     auto buildTargetHeaderTree(ProjectExplorer::VirtualFolderNode *node, const QStringList &headers)
@@ -67,7 +72,12 @@ namespace XMakeProjectManager::Internal {
             qCDebug(xmake_project_tree_log) << "Header node" << file.toUserOutput();
             node->addNestedNode(
                 std::make_unique<ProjectExplorer::FileNode>(file,
-                                                            ProjectExplorer::FileType::Header));
+                                                            ProjectExplorer::FileType::Header),
+                {},
+                [](const Utils::FilePath &fn) {
+                    qCDebug(xmake_project_tree_log) << "Folder node" << fn;
+                    return std::make_unique<ProjectExplorer::FolderNode>(fn);
+                });
         }
     }
 
@@ -97,83 +107,11 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto findCommonPath(const QStringList &list) {
-        if (std::empty(list)) return QString {};
-
-        qCDebug(xmake_project_tree_log) << list;
-
-        auto dir_list = QStringList {};
-        dir_list.reserve(std::size(list));
-        std::transform(std::cbegin(list),
-                       std::cend(list),
-                       std::back_inserter(dir_list),
-                       [](const auto &item) {
-                           return Utils::FilePath::fromString(item).parentDir().path();
-                       });
-
-        auto root = dir_list.front();
-
-        for (const auto &item : dir_list) {
-            if (root.length() > item.length()) root.truncate(item.length());
-
-            for (auto i = 0; i < root.length(); ++i) {
-                if (root[i] != item[i]) {
-                    root.truncate(i);
-                    break;
-                }
-            }
-        }
-
-        qCDebug(xmake_project_tree_log) << "common path for " << dir_list << " is " << root;
-
-        return root;
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto findCommonDir(const QStringList &list) {
-        if (std::empty(list)) return QString {};
-
-        auto root = list.front();
-
-        for (const auto &item : list) {
-            if (root.length() > item.length()) root.truncate(item.length());
-
-            for (auto i = 0; i < root.length(); ++i) {
-                if (root[i] != item[i]) {
-                    root.truncate(i);
-                    break;
-                }
-            }
-        }
-
-        qCDebug(xmake_project_tree_log) << "common dir for " << list << " is " << root;
-
-        return root;
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto findCommonPath(const Target::SourceGroupList &sources_list) -> QString {
-        auto list = QStringList {};
-        list.reserve(static_cast<qsizetype>(std::size(sources_list)));
-
-        std::transform(std::cbegin(sources_list),
-                       std::cend(sources_list),
-                       std::back_inserter(list),
-                       [](const auto &sources) { return findCommonPath(sources.sources); });
-
-        return findCommonDir(list);
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto createVirtualNode(const QString &common_path, const QString &name)
+    auto createVirtualNode(const Utils::FilePath &path, const QString &name)
         -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
-        if (common_path.size() <= 0) return nullptr;
+        if (path.isEmpty()) return nullptr;
 
-        auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(
-            Utils::FilePath::fromString(common_path).absoluteFilePath());
+        auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(path);
 
         qCDebug(xmake_project_tree_log)
             << QString { "Virtual node '%1' %2" }.arg(name, node->path().toUserOutput());
@@ -218,21 +156,53 @@ namespace XMakeProjectManager::Internal {
                 sources.erase(modules_it);
             }
 
-            auto node = createVirtualNode(findCommonPath(sources), "Source Files");
+            auto base_directory = Utils::FilePath {};
+            for (const auto &source_group : sources) {
+                for (const auto &source : source_group.sources) {
+                    const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+
+                    if (base_directory.isEmpty()) base_directory = source_path.parentDir();
+                    else
+                        base_directory = Utils::FileUtils::commonPath(base_directory, source_path);
+                }
+            }
+
+            auto node = createVirtualNode(base_directory, "Source Files");
             if (node) {
                 buildTargetSourceTree(node.get(), sources);
                 parent->addNode(std::move(node));
             }
 
             if (!std::empty(modules)) {
-                node = createVirtualNode(findCommonPath(modules), "Module Files");
+                base_directory = Utils::FilePath {};
+                for (const auto &source_group : modules) {
+                    for (const auto &source : source_group.sources) {
+                        const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+
+                        if (base_directory.isEmpty()) base_directory = source_path.parentDir();
+                        else
+                            base_directory =
+                                Utils::FileUtils::commonPath(base_directory, source_path);
+                    }
+                }
+
+                node = createVirtualNode(base_directory, "Module Files");
                 if (node) {
                     buildTargetModuleTree(node.get(), modules);
                     parent->addNode(std::move(node));
                 }
             }
 
-            node = createVirtualNode(findCommonPath(target.headers), "Header Files");
+            base_directory = Utils::FilePath {};
+            for (const auto &source : target.headers) {
+                const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+
+                if (base_directory.isEmpty()) base_directory = source_path.parentDir();
+                else
+                    base_directory = Utils::FileUtils::commonPath(base_directory, source_path);
+            }
+
+            node = createVirtualNode(base_directory, "Header Files");
             if (node) {
                 buildTargetHeaderTree(node.get(), target.headers);
                 parent->addNode(std::move(node));
