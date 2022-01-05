@@ -95,7 +95,7 @@ function main ()
                 kind = "unknown"
             end
 
-            table.insert(source_batches, { kind = kind, source_files = source_files, arguments = arguments, languages = target:get("languages"), packages = target:get("packages") } )
+            table.insert(source_batches, { kind = kind, source_files = source_files, arguments = arguments, languages = target:get("languages") })
         end
 
         local header_files = {}
@@ -112,7 +112,7 @@ function main ()
 
         local defined_in = path.absolute("xmake.lua", target:scriptdir()):gsub("%\\", "/")
 
-        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = defined_in, source_batches = source_batches, header_files = header_files, target_file = target_file })
+        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = defined_in, source_batches = source_batches, header_files = header_files, target_file = target_file, packages = target:get("packages"), group = target:get("group") } )
     end
 
     table.sort(targets, function(first, second) return first.name > second.name end)

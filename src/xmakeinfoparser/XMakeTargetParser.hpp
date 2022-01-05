@@ -31,6 +31,8 @@ namespace XMakeProjectManager::Internal {
 
         QStringList languages; // for MSVC code model
 
+        QStringList group;
+
         static QString fullName(const Utils::FilePath &srcDir,
                                 const QString &target_file,
                                 const QString &defined_in);

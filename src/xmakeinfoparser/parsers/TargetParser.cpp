@@ -53,6 +53,9 @@ namespace XMakeProjectManager::Internal {
         auto json_languages = json_target["languages"].toArray();
         target.languages    = extractLanguages(json_languages);
 
+        auto group   = json_target["group"].toString();
+        target.group = group.split('/');
+
         return target;
     }
 
