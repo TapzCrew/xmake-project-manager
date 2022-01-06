@@ -19,8 +19,16 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeTools::addTool(Utils::Id id, QString name, Utils::FilePath exe) -> void {
-        addTool(std::make_unique<XMakeWrapper>(std::move(name), std::move(exe), std::move(id)));
+    auto XMakeTools::addTool(Utils::Id id,
+                             QString name,
+                             Utils::FilePath exe,
+                             bool autorun,
+                             bool auto_accept_requests) -> void {
+        addTool(std::make_unique<XMakeWrapper>(std::move(name),
+                                               std::move(exe),
+                                               std::move(id),
+                                               autorun,
+                                               auto_accept_requests));
     }
 
     ////////////////////////////////////////////////////
@@ -51,7 +59,11 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeTools::updateTool(Utils::Id id, QString name, Utils::FilePath exe) -> void {
+    auto XMakeTools::updateTool(Utils::Id id,
+                                QString name,
+                                Utils::FilePath exe,
+                                bool autorun,
+                                bool auto_accept_requests) -> void {
         auto &self = instance();
 
         auto item = std::find_if(std::begin(self.m_tools),
@@ -61,8 +73,10 @@ namespace XMakeProjectManager::Internal {
         if (item != std::cend(self.m_tools)) {
             (*item)->setExe(std::move(exe));
             (*item)->setName(std::move(name));
+            (*item)->setAutorun(autorun);
+            (*item)->setAutoAcceptRequests(auto_accept_requests);
         } else
-            addTool(std::move(id), std::move(name), std::move(exe));
+            addTool(std::move(id), std::move(name), std::move(exe), autorun, auto_accept_requests);
     }
 
     ////////////////////////////////////////////////////

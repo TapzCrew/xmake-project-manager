@@ -28,8 +28,11 @@ namespace XMakeProjectManager::Internal {
         void store();
 
       Q_SIGNALS:
-        void
-            applyChanges(const Utils::Id &item_id, const QString &name, const Utils::FilePath &exe);
+        void applyChanges(const Utils::Id &item_id,
+                          const QString &name,
+                          const Utils::FilePath &exe,
+                          bool autorun,
+                          bool auto_accept_requests);
 
       private:
         std::unique_ptr<Ui::ToolItemSettings> m_ui;

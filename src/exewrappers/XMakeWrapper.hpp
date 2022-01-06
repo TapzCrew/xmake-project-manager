@@ -57,8 +57,17 @@ namespace XMakeProjectManager::Internal {
     class XMakeWrapper {
       public:
         XMakeWrapper() = delete;
-        XMakeWrapper(QString name, Utils::FilePath path, bool auto_detected = false);
-        XMakeWrapper(QString name, Utils::FilePath path, Utils::Id id, bool auto_detected = false);
+        XMakeWrapper(QString name,
+                     Utils::FilePath path,
+                     bool auto_detected        = false,
+                     bool autorun              = false,
+                     bool auto_accept_requests = false);
+        XMakeWrapper(QString name,
+                     Utils::FilePath path,
+                     Utils::Id id,
+                     bool auto_detected        = false,
+                     bool autorun              = false,
+                     bool auto_accept_requests = false);
         ~XMakeWrapper();
 
         XMakeWrapper(XMakeWrapper &&);
@@ -72,9 +81,13 @@ namespace XMakeProjectManager::Internal {
         const Utils::Id &id() const noexcept;
         QString name() const noexcept;
         const Utils::FilePath &exe() const noexcept;
+        bool autorun() const noexcept;
+        bool autoAcceptRequests() const noexcept;
 
-        void setName(QString new_name) noexcept;
-        void setExe(Utils::FilePath new_exe);
+        void setName(QString value) noexcept;
+        void setExe(Utils::FilePath value);
+        void setAutorun(bool value) noexcept;
+        void setAutoAcceptRequests(bool value) noexcept;
 
         static Utils::optional<Utils::FilePath> findTool();
 
@@ -94,6 +107,9 @@ namespace XMakeProjectManager::Internal {
         Utils::Id m_id;
         Utils::FilePath m_exe;
         QString m_name;
+
+        bool m_autorun;
+        bool m_auto_accept_requests;
     };
 
     QVariantMap toVariantMap(const XMakeWrapper &xmake);

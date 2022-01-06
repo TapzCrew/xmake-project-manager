@@ -148,7 +148,9 @@ namespace XMakeProjectManager::Internal {
     auto XMakeBuildSystem::parseProject() -> bool {
         QTC_ASSERT(buildConfiguration(), return false);
 
-        if (Settings::instance()->autorunXMake().value()) return configure();
+        const auto xmake = XMakeToolKitAspect::xmakeTool(xmakeBuildConfiguration()->kit());
+
+        if (xmake && xmake->autorun()) return configure();
 
         LEAVE_IF_BUSY();
         LOCK();

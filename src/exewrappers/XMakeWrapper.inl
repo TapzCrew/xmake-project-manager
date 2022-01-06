@@ -107,8 +107,26 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    inline auto XMakeWrapper::setName(QString new_name) noexcept -> void {
-        m_name = std::move(new_name);
+    inline auto XMakeWrapper::autorun() const noexcept -> bool { return m_autorun; }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeWrapper::autoAcceptRequests() const noexcept -> bool {
+        return m_auto_accept_requests;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeWrapper::setName(QString value) noexcept -> void { m_name = std::move(value); }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeWrapper::setAutorun(bool value) noexcept -> void { m_autorun = value; }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeWrapper::setAutoAcceptRequests(bool value) noexcept -> void {
+        m_auto_accept_requests = value;
     }
 
     ////////////////////////////////////////////////////
@@ -126,6 +144,9 @@ namespace XMakeProjectManager::Internal {
         data.insert(QLatin1String { Constants::ToolsSettings::UUID_KEY }, xmake.id().toSetting());
         data.insert(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY },
                     QLatin1String { Constants::ToolsSettings::TOOL_TYPE_XMAKE });
+        data.insert(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY }, xmake.autorun());
+        data.insert(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY },
+                    xmake.autoAcceptRequests());
 
         return data;
     }

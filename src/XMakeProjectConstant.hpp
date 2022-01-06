@@ -22,15 +22,18 @@ namespace XMakeProjectManager::Constants {
 
     namespace ToolsSettings {
         static constexpr auto FILENAME         = "xmaketool.xml";
-        static constexpr auto ENTRY_KEY        = "Tool.";
-        static constexpr auto ENTRY_COUNT      = "Tools.Count";
-        static constexpr auto EXE_KEY          = "exe";
-        static constexpr auto AUTODETECTED_KEY = "autodetected";
-        static constexpr auto NAME_KEY         = "name";
-        static constexpr auto UUID_KEY         = "uuid";
+        static constexpr auto ENTRY_KEY        = "XMakeProjectManager.Tool.";
+        static constexpr auto ENTRY_COUNT      = "XMakeProjectManager.Tools.Count";
+        static constexpr auto EXE_KEY          = "XMakeProjectManager.Tool.Exe";
+        static constexpr auto AUTODETECTED_KEY = "XMakeProjectManager.Tool.AutoDetected";
+        static constexpr auto NAME_KEY         = "XMakeProjectManager.Tool.name";
+        static constexpr auto UUID_KEY         = "XMakeProjectManager.Tool.uuid";
         static constexpr auto TOOL_TYPE_XMAKE  = "xmake";
         static constexpr auto TOOL_TYPE_XREPO  = "xrepo"; /* for the future */
-        static constexpr auto TOOL_TYPE_KEY    = "type";
+        static constexpr auto TOOL_TYPE_KEY    = "XMakeProjectManager.Tool.Type";
+        static constexpr auto AUTORUN_KEY      = "XMakeProjectManager.Tool.Autorun";
+        static constexpr auto AUTO_ACCEPT_REQUESTS_KEY =
+            "XMakeProjectManager.Tool.AutoAcceptRequests";
     } // namespace ToolsSettings
 
     namespace BuildConfiguration {

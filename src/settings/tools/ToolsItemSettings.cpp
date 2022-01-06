@@ -22,6 +22,11 @@ namespace XMakeProjectManager::Internal {
                 &QLineEdit::textChanged,
                 this,
                 &ToolItemSettings::store);
+        connect(m_ui->autorun_checkbox, &QCheckBox::toggled, this, &ToolItemSettings::store);
+        connect(m_ui->auto_accept_requests_checkbox,
+                &QCheckBox::toggled,
+                this,
+                &ToolItemSettings::store);
     }
 
     ////////////////////////////////////////////////////
@@ -40,6 +45,9 @@ namespace XMakeProjectManager::Internal {
             m_ui->xmake_path_chooser->setDisabled(item->isAutoDetected());
             m_ui->xmake_path_chooser->setFilePath(item->executable());
 
+            m_ui->autorun_checkbox->setChecked(item->autorun());
+            m_ui->auto_accept_requests_checkbox->setChecked(item->autoAcceptRequests());
+
             m_current_id = item->id();
         } else
             m_current_id = Utils::nullopt;
@@ -51,7 +59,9 @@ namespace XMakeProjectManager::Internal {
         if (m_current_id)
             Q_EMIT applyChanges(*m_current_id,
                                 m_ui->xmake_name_line_edit->text(),
-                                m_ui->xmake_path_chooser->filePath());
+                                m_ui->xmake_path_chooser->filePath(),
+                                m_ui->autorun_checkbox->isChecked(),
+                                m_ui->auto_accept_requests_checkbox->isChecked());
     }
 } // namespace XMakeProjectManager::Internal
 

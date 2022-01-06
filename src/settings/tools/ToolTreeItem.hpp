@@ -10,8 +10,8 @@ namespace XMakeProjectManager::Internal {
         Q_DECLARE_TR_FUNCTIONS(XMakeProjectManager::Internal::ToolsSettingsPage)
 
       public:
-        ToolTreeItem(QString name);
-        ToolTreeItem(const XMakeWrapper &tool);
+        explicit ToolTreeItem(QString name);
+        explicit ToolTreeItem(const XMakeWrapper &tool);
         ~ToolTreeItem();
 
         ToolTreeItem(ToolTreeItem &&) = delete;
@@ -27,6 +27,9 @@ namespace XMakeProjectManager::Internal {
         const Utils::FilePath &executable() const noexcept;
 
         bool isAutoDetected() const noexcept;
+
+        bool autorun() const noexcept;
+        bool autoAcceptRequests() const noexcept;
 
         const Utils::Id &id() const noexcept;
 
@@ -49,6 +52,9 @@ namespace XMakeProjectManager::Internal {
         bool m_path_exists;
         bool m_path_is_file;
         bool m_path_is_executable;
+
+        bool m_autorun;
+        bool m_auto_accept_requests;
 
         Utils::Id m_id;
 

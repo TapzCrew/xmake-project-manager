@@ -19,10 +19,18 @@ namespace XMakeProjectManager::Internal {
 
         ~XMakeTools() override;
 
-        static void addTool(Utils::Id id, QString name, Utils::FilePath exe);
+        static void addTool(Utils::Id id,
+                            QString name,
+                            Utils::FilePath exe,
+                            bool autorun,
+                            bool auto_accept_requests);
         static void addTool(XMakeWrapperPtr &&xmake);
         static void setTools(std::vector<XMakeWrapperPtr> &&tools);
-        static void updateTool(Utils::Id id, QString name, Utils::FilePath exe);
+        static void updateTool(Utils::Id id,
+                               QString name,
+                               Utils::FilePath exe,
+                               bool autorun,
+                               bool auto_accept_requests);
         static void removeTool(Utils::Id id);
 
         static const std::vector<XMakeWrapperPtr> &tools() noexcept;

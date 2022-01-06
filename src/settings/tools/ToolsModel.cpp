@@ -76,7 +76,11 @@ namespace XMakeProjectManager::Internal {
     auto ToolsModel::apply() -> void {
         forItemsAtLevel<2>([this](auto item) {
             if (item->hasUnsavedChanges()) {
-                XMakeTools::updateTool(item->id(), item->name(), item->executable());
+                XMakeTools::updateTool(item->id(),
+                                       item->name(),
+                                       item->executable(),
+                                       item->autorun(),
+                                       item->autoAcceptRequests());
 
                 item->setSaved();
 

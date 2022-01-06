@@ -12,15 +12,7 @@ namespace XMakeProjectManager::Internal {
 
         static Settings *instance();
 
-        Utils::BoolAspect &autorunXMake() noexcept;
-        const Utils::BoolAspect &autorunXMake() const noexcept;
-
-        Utils::BoolAspect &acceptInstallDependencies() noexcept;
-        const Utils::BoolAspect &acceptInstallDependencies() const noexcept;
-
       private:
-        Utils::BoolAspect m_autorun_xmake;
-        Utils::BoolAspect m_accept_install_dependencies;
     };
 
     class GeneralSettingsPage final: public Core::IOptionsPage {

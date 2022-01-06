@@ -29,16 +29,28 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    XMakeWrapper::XMakeWrapper(QString name, Utils::FilePath path, bool auto_detected)
+    XMakeWrapper::XMakeWrapper(QString name,
+                               Utils::FilePath path,
+                               bool auto_detected,
+                               bool autorun,
+                               bool auto_accept_requests)
         : m_is_valid { path.exists() }, m_autodetected { auto_detected },
           m_id { Utils::Id::fromString(QUuid::createUuid().toString()) }, m_exe { std::move(path) },
-          m_name { std::move(name) } {}
+          m_name { std::move(name) }, m_autorun { autorun }, m_auto_accept_requests {
+              auto_accept_requests
+          } {}
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    XMakeWrapper::XMakeWrapper(QString name, Utils::FilePath path, Utils::Id id, bool auto_detected)
+    XMakeWrapper::XMakeWrapper(QString name,
+                               Utils::FilePath path,
+                               Utils::Id id,
+                               bool auto_detected,
+                               bool autorun,
+                               bool auto_accept_requests)
         : m_is_valid { path.exists() }, m_autodetected { auto_detected }, m_id { std::move(id) },
-          m_exe { std::move(path) }, m_name { std::move(name) } {}
+          m_exe { std::move(path) }, m_name { std::move(name) }, m_autorun { autorun },
+          m_auto_accept_requests { auto_accept_requests } {}
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -83,8 +95,7 @@ namespace XMakeProjectManager::Internal {
                                  const Utils::FilePath &build_directory,
                                  const QStringList &options) const -> Command {
         QStringList _options = options;
-        if (Settings::instance()->acceptInstallDependencies().value())
-            _options.emplace_back("--yes");
+        if (m_auto_accept_requests) _options.emplace_back("--yes");
         return { m_exe,
                  Utils::FilePath::fromString(QDir::rootPath()), // source_directory,
                  options_cat("f",
