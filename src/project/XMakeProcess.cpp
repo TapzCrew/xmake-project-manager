@@ -213,7 +213,8 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProcess::processStandardError() -> void {
         QTC_ASSERT(m_process, return );
 
-        Core::MessageManager::writeSilently(
-            QString::fromLocal8Bit(m_process->readAllStandardError()));
+        auto data = m_process->readAllStandardError();
+
+        Core::MessageManager::writeSilently(QString::fromLocal8Bit(data));
     }
 } // namespace XMakeProjectManager::Internal

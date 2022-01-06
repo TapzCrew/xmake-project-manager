@@ -30,6 +30,7 @@ namespace XMakeProjectManager::Internal {
         void pushLine(const QString &line);
 
         Result processErrors(QStringView line);
+        Result processWarnings(QStringView line);
 
         void addTask(ProjectExplorer::Task::TaskType type, QStringView line);
         void addTask(ProjectExplorer::Task task);
@@ -41,8 +42,12 @@ namespace XMakeProjectManager::Internal {
                           int line_number_cap_index,
                           int error_cap_index);
 
-        const QRegularExpression m_error_file_location_regex { R"|(error: (.*):(\d+): (.*))|" };
-        const QRegularExpression m_options_errors_regex { R"(error: Value)" };
+        const QRegularExpression m_error_file_location_regex {
+            R"|(error: (.*) (.*):(\d+): (.*))|"
+        };
+        const QRegularExpression m_options_errors_regex { R"(error: (.*))" };
+        const QRegularExpression m_warnings_regex { R"(warning: (.*))" };
+        const QRegularExpression m_warning_file_location_regex { R"(warning: (.*) at (.*):(\d+))" };
 
         int m_remaining_lines = 0;
 

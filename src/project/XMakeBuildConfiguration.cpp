@@ -20,8 +20,6 @@ namespace XMakeProjectManager::Internal {
         appendInitialBuildStep(Constants::XMAKE_BUILD_STEP_ID);
         appendInitialCleanStep(Constants::XMAKE_BUILD_STEP_ID);
 
-        qDebug() << buildSteps()->count();
-
         setInitializer([this, target](const auto &info) {
             m_build_type = xmakeBuildType(info.typeName);
 

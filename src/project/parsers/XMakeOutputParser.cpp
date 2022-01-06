@@ -27,7 +27,7 @@ namespace XMakeProjectManager::Internal {
         auto result = processErrors(line);
         if (result.status == ProjectExplorer::OutputTaskParser::Status::Done) return result;
 
-        return ProjectExplorer::OutputTaskParser::Status::NotHandled;
+        return processWarnings(line);
     }
 
     ////////////////////////////////////////////////////
@@ -60,22 +60,46 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeOutputParser::processErrors(QStringView line) -> Result {
-        auto options_errors = m_options_errors_regex.match(line);
-        if (options_errors.hasMatch()) {
-            addTask(ProjectExplorer::Task::TaskType::Error, line);
-            return ProjectExplorer::OutputTaskParser::Status::Done;
-        }
-
         auto located_errors = m_error_file_location_regex.match(line);
         if (located_errors.hasMatch()) {
             auto link_specs = addTask(ProjectExplorer::Task::TaskType::Error,
                                       line,
                                       located_errors,
                                       QStringLiteral("error"),
-                                      1,
                                       2,
-                                      3);
+                                      3,
+                                      4);
             return { ProjectExplorer::OutputTaskParser::Status::Done, link_specs };
+        }
+
+        auto options_errors = m_options_errors_regex.match(line);
+        if (options_errors.hasMatch()) {
+            addTask(ProjectExplorer::Task::TaskType::Error, options_errors.capturedView(1));
+            return ProjectExplorer::OutputTaskParser::Status::Done;
+        }
+
+        return ProjectExplorer::OutputTaskParser::Status::NotHandled;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto XMakeOutputParser::processWarnings(QStringView line) -> Result {
+        auto located_warnings = m_warning_file_location_regex.match(line);
+        if (located_warnings.hasMatch()) {
+            auto link_specs = addTask(ProjectExplorer::Task::TaskType::Warning,
+                                      line,
+                                      located_warnings,
+                                      QStringLiteral("warning"),
+                                      2,
+                                      3,
+                                      1);
+            return { ProjectExplorer::OutputTaskParser::Status::Done, link_specs };
+        }
+
+        auto warnings = m_warnings_regex.match(line);
+        if (warnings.hasMatch()) {
+            addTask(ProjectExplorer::Task::TaskType::Warning, warnings.capturedView(1));
+            return ProjectExplorer::OutputTaskParser::Status::Done;
         }
 
         return ProjectExplorer::OutputTaskParser::Status::NotHandled;

@@ -205,12 +205,12 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeProjectParser::startParser() -> bool {
-        m_parser_future_result = Utils::runAsync(
-            ProjectExplorer::ProjectExplorerPlugin::sharedThreadPool(),
-            [process = &m_process, build_dir = m_build_dir.toString(), src_dir = m_src_dir] {
-                return extractParserResults(src_dir, XMakeInfoParser::parse(process->stdOut()));
-            });
+    auto XMakeProjectParser::startParser(const QByteArray &data) -> bool {
+        m_parser_future_result =
+            Utils::runAsync(ProjectExplorer::ProjectExplorerPlugin::sharedThreadPool(),
+                            [data, build_dir = m_build_dir.toString(), src_dir = m_src_dir] {
+                                return extractParserResults(src_dir, XMakeInfoParser::parse(data));
+                            });
 
         Utils::onFinished(m_parser_future_result, this, &XMakeProjectParser::update);
 
@@ -220,7 +220,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProjectParser::processFinished(int code, QProcess::ExitStatus status) -> void {
-        const auto json_output = [this] {
+        auto json_output = [this] {
             auto json = QJsonDocument::fromJson(m_process.stdOut());
 
             auto str = QString::fromLocal8Bit(json.toJson());
@@ -234,19 +234,43 @@ namespace XMakeProjectManager::Internal {
                                           << "finished with code: " << code << " status: " << status
                                           << " output: " << json_output;
 
-        if (code != 0 || status != QProcess::NormalExit) {
+        const auto error_or_warning_regex =
+            QRegularExpression { R"|(((error:)|(warning:))(.+)\n)|" };
+        const auto error_regex   = QRegularExpression { R"|(error:(.+)\n)|" };
+        const auto warning_regex = QRegularExpression { R"|(warning:(.+)\n)|" };
+
+        auto has_error_or_warnings = error_or_warning_regex.match(json_output);
+        auto error_or_warnings     = QString {};
+
+        auto has_errors   = error_regex.match(json_output).hasMatch();
+        auto has_warnings = warning_regex.match(json_output).hasMatch();
+        while (has_error_or_warnings.hasMatch()) {
+            error_or_warnings += has_error_or_warnings.captured(0);
+            json_output.erase(std::begin(json_output) + has_error_or_warnings.capturedStart(0),
+                              std::begin(json_output) + has_error_or_warnings.capturedEnd(0));
+
+            has_error_or_warnings = error_or_warning_regex.match(json_output);
+        }
+
+        if (code != 0 || status != QProcess::NormalExit || has_errors) {
             const auto &data = m_process.stdOut();
 
-            Core::MessageManager::writeSilently(QString::fromLocal8Bit(data));
+            Core::MessageManager::writeSilently(error_or_warnings);
 
-            m_output_parser.readStdo(data);
+            m_output_parser.readStdo(error_or_warnings.toLocal8Bit());
 
             Q_EMIT parsingCompleted(false);
 
             return;
+        } else if (has_warnings) {
+            const auto &data = m_process.stdOut();
+
+            Core::MessageManager::writeSilently(error_or_warnings);
+
+            m_output_parser.readStdo(error_or_warnings.toLocal8Bit());
         }
 
-        if (m_pending_commands.isEmpty()) startParser();
+        if (m_pending_commands.isEmpty()) startParser(json_output.toLocal8Bit());
         else {
             auto args = m_pending_commands.dequeue();
             m_process.run(std::get<0>(args), m_env, m_project_name, std::get<1>(args));

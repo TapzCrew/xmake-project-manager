@@ -67,7 +67,7 @@ namespace XMakeProjectManager::Internal {
             std::unique_ptr<XMakeProjectNode> root_node;
         };
 
-        bool startParser();
+        bool startParser(const QByteArray &data);
         void processFinished(int code, QProcess::ExitStatus status);
 
         static ParserData *extractParserResults(const Utils::FilePath &source_dir,
