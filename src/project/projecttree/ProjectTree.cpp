@@ -1,5 +1,7 @@
 #include "ProjectTree.hpp"
 
+#include <QApplication>
+
 #include <utils/algorithm.h>
 #include <utils/utilsicons.h>
 
@@ -26,11 +28,57 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    auto createVirtualNode(const Utils::FilePath &path, const QString &name)
+        -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
+        if (path.isEmpty()) return nullptr;
+
+        auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(path);
+
+        node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
+        node->setDisplayName(name);
+
+        return node;
+    }
+
+    auto createGroupNode(const Utils::FilePath &path, const QString &name)
+        -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
+        auto node = createVirtualNode(path, name);
+        if (!node) return nullptr;
+
+        qCDebug(xmake_project_tree_log)
+            << QString { "Group node '%1' %2" }.arg(path.baseName(), node->path().toUserOutput());
+        node->setIsSourcesOrHeaders(false);
+        node->setListInProject(false);
+        node->setIcon(
+            ProjectExplorer::DirectoryIcon { ProjectExplorer::Constants::FILEOVERLAY_MODULES });
+
+        return node;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto createSourceGroupNode(const Utils::FilePath &path, const QString &name)
+        -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
+        auto node = createVirtualNode(path, name);
+        if (!node) return nullptr;
+
+        qCDebug(xmake_project_tree_log)
+            << QString { "Source Group node '%1' %2" }.arg(name, node->path().toUserOutput());
+
+        node->setIsSourcesOrHeaders(true);
+        node->setListInProject(false);
+        node->setIcon([] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
+
+        return node;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto findOrCreateGroup(XMakeProjectNode *root, const QStringList &group)
         -> ProjectExplorer::VirtualFolderNode * {
         using FolderNodePtr = ProjectExplorer::FolderNode *;
 
-        if (std::empty(group) || group[0] == ".") return nullptr;
+        if (std::empty(group) || group[0] == "." || group[0] == "") return nullptr;
 
         const auto path = [&group]() {
             auto path = Utils::FilePath {};
@@ -47,17 +95,7 @@ namespace XMakeProjectManager::Internal {
             FolderNodePtr { findOrCreateGroup(root, path.parentDir().toString().split('/')) };
         if (parent == nullptr) parent = root;
 
-        auto group_node = std::make_unique<ProjectExplorer::VirtualFolderNode>(path);
-
-        qCDebug(xmake_project_tree_log)
-            << QString { "Group node '%1' %2" }.arg(path.baseName(),
-                                                    group_node->path().toUserOutput());
-        group_node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
-        group_node->setDisplayName(path.baseName());
-        group_node->setIsSourcesOrHeaders(false);
-        group_node->setListInProject(false);
-        group_node->setIcon(
-            ProjectExplorer::DirectoryIcon(ProjectExplorer::Constants::FILEOVERLAY_MODULES));
+        auto group_node = createGroupNode(path, path.baseName());
 
         auto ptr = group_node.get();
 
@@ -70,19 +108,29 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto buildTargetSourceTree(ProjectExplorer::VirtualFolderNode *node,
                                const Target::SourceGroupList &sources) -> void {
+        auto pixmap =
+            QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(QSize { 16, 16 });
+        auto cpp_icon = QIcon {};
+        cpp_icon.addPixmap(
+            Core::FileIconProvider::overlayIcon(pixmap,
+                                                QIcon {
+                                                    ProjectExplorer::Constants::FILEOVERLAY_CPP }));
+
         for (const auto &group : sources) {
             for (const auto &filename : group.sources) {
                 auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
 
                 qCDebug(xmake_project_tree_log) << "Source node" << file.toUserOutput();
-                node->addNestedNode(
+                auto source_node =
                     std::make_unique<ProjectExplorer::FileNode>(file,
-                                                                ProjectExplorer::FileType::Source),
-                    {},
-                    [](const Utils::FilePath &fn) {
-                        qCDebug(xmake_project_tree_log) << "Folder node" << fn;
-                        return std::make_unique<ProjectExplorer::FolderNode>(fn);
-                    });
+                                                                ProjectExplorer::FileType::Source);
+
+                if (file.endsWith(".cpp")) source_node->setIcon(cpp_icon);
+
+                node->addNestedNode(std::move(source_node), {}, [](const Utils::FilePath &fn) {
+                    qCDebug(xmake_project_tree_log) << "Folder node" << fn;
+                    return std::make_unique<ProjectExplorer::FolderNode>(fn);
+                });
             }
         }
     }
@@ -91,15 +139,24 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto buildTargetModuleTree(ProjectExplorer::VirtualFolderNode *node,
                                const Target::SourceGroupList &sources) -> void {
+        auto pixmap =
+            QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(QSize { 16, 16 });
+        auto cpp_icon = QIcon {};
+        cpp_icon.addPixmap(
+            Core::FileIconProvider::overlayIcon(pixmap,
+                                                QIcon {
+                                                    ProjectExplorer::Constants::FILEOVERLAY_CPP }));
         auto nodes = std::vector<std::unique_ptr<ProjectExplorer::FileNode>> {};
         for (const auto &group : sources) {
             for (const auto &filename : group.sources) {
                 auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
 
                 qCDebug(xmake_project_tree_log) << "Module node" << filename;
-                nodes.emplace_back(
+                auto module_node =
                     std::make_unique<ProjectExplorer::FileNode>(file,
-                                                                ProjectExplorer::FileType::Header));
+                                                                ProjectExplorer::FileType::Header);
+                if (file.endsWith(".mpp")) module_node->setIcon(cpp_icon);
+                nodes.emplace_back(std::move(module_node));
             }
         }
 
@@ -108,21 +165,60 @@ namespace XMakeProjectManager::Internal {
         for (auto *n : node->folderNodes()) n->compress();
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto buildTargetHeaderTree(ProjectExplorer::VirtualFolderNode *node, const QStringList &headers)
         -> void {
+        auto pixmap =
+            QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(QSize { 16, 16 });
+        auto icon = QIcon {};
+        icon.addPixmap(
+            Core::FileIconProvider::overlayIcon(pixmap,
+                                                QIcon {
+                                                    ProjectExplorer::Constants::FILEOVERLAY_H }));
+
         for (const auto &filename : headers) {
             auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
 
             qCDebug(xmake_project_tree_log) << "Header node" << file.toUserOutput();
-            node->addNestedNode(
+            auto header_node =
                 std::make_unique<ProjectExplorer::FileNode>(file,
-                                                            ProjectExplorer::FileType::Header),
-                {},
-                [](const Utils::FilePath &fn) {
-                    qCDebug(xmake_project_tree_log) << "Folder node" << fn;
-                    return std::make_unique<ProjectExplorer::FolderNode>(fn);
-                });
+                                                            ProjectExplorer::FileType::Header);
+            header_node->setIcon(icon);
+            node->addNestedNode(std::move(header_node), {}, [](const Utils::FilePath &fn) {
+                qCDebug(xmake_project_tree_log) << "Folder node" << fn;
+                return std::make_unique<ProjectExplorer::FolderNode>(fn);
+            });
         }
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto buildTargetExternalPackagesTree(const Utils::FilePath &path,
+                                         const QString &target_name,
+                                         const QStringList &packages)
+
+        -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
+        if (packages.empty()) return nullptr;
+
+        auto parent = createVirtualNode(path, "External Packages");
+        if (!parent) return nullptr;
+
+        parent->setIcon(QIcon { ProjectExplorer::Constants::FILEOVERLAY_MODULES });
+        parent->setIsSourcesOrHeaders(false);
+        parent->setListInProject(false);
+
+        for (const auto &package : packages) {
+            auto node =
+                std::make_unique<ProjectExplorer::FileNode>(path / package,
+                                                            ProjectExplorer::FileType::Unknown);
+            node->setIcon(QIcon { ProjectExplorer::Constants::FILEOVERLAY_MODULES });
+            node->setListInProject(false);
+
+            parent->addNode(std::move(node));
+        }
+
+        return parent;
     }
 
     ////////////////////////////////////////////////////
@@ -151,44 +247,6 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto createGroupNode(const Utils::FilePath &path, const QString &name)
-        -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
-        if (path.isEmpty()) return nullptr;
-
-        auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(path);
-
-        qCDebug(xmake_project_tree_log)
-            << QString { "Group node '%1' %2" }.arg(name, node->path().toUserOutput());
-        node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
-        node->setDisplayName(name);
-        node->setIsSourcesOrHeaders(true);
-        node->setListInProject(false);
-        node->setIcon([] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
-
-        return node;
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto createSourceGroupNode(const Utils::FilePath &path, const QString &name)
-        -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
-        if (path.isEmpty()) return nullptr;
-
-        auto node = std::make_unique<ProjectExplorer::VirtualFolderNode>(path);
-
-        qCDebug(xmake_project_tree_log)
-            << QString { "Source Group node '%1' %2" }.arg(name, node->path().toUserOutput());
-        node->setPriority(ProjectExplorer::Node::DefaultFolderPriority + 5);
-        node->setDisplayName(name);
-        node->setIsSourcesOrHeaders(true);
-        node->setListInProject(false);
-        node->setIcon([] { return QIcon::fromTheme("edit-copy", ::Utils::Icons::COPY.icon()); });
-
-        return node;
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
     ProjectTree::ProjectTree() = default;
 
     ////////////////////////////////////////////////////
@@ -197,7 +255,8 @@ namespace XMakeProjectManager::Internal {
                                 const TargetsList &targets,
                                 const std::vector<Utils::FilePath> &bs_files)
         -> std::unique_ptr<XMakeProjectNode> {
-        auto target_paths = std::set<Utils::FilePath> {};
+        using FolderNodePtr = ProjectExplorer::FolderNode *;
+        auto target_paths   = std::set<Utils::FilePath> {};
 
         auto project_node = std::make_unique<XMakeProjectNode>(src_dir);
 
@@ -205,7 +264,8 @@ namespace XMakeProjectManager::Internal {
         for (const auto &target : targets) {
             auto sources = target.sources;
 
-            auto root = findOrCreateGroup(project_node.get(), target.group);
+            auto root = FolderNodePtr { findOrCreateGroup(project_node.get(), target.group) };
+            if (root == nullptr) root = project_node.get();
 
             auto *parent = addTargetNode(root, target);
 
@@ -271,6 +331,17 @@ namespace XMakeProjectManager::Internal {
             if (node) {
                 buildTargetHeaderTree(node.get(), target.headers);
                 parent->addNode(std::move(node));
+            }
+
+            if (!target.packages.empty()) {
+                auto node =
+                    buildTargetExternalPackagesTree(Utils::FilePath::fromString(target.defined_in),
+                                                    target.name,
+                                                    target.packages);
+                if (node) {
+                    node->setParentFolderNode(parent);
+                    parent->addNode(std::move(node));
+                }
             }
 
             target_paths.insert(Utils::FilePath::fromString(target.defined_in).absolutePath());

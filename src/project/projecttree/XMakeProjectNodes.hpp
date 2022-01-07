@@ -12,6 +12,22 @@ namespace XMakeProjectManager::Internal {
         XMakeProjectNode(const Utils::FilePath &directory);
     };
 
+    class XMakeDependencyNode final: public ProjectExplorer::Node {
+      public:
+        XMakeDependencyNode(const Utils::FilePath &directory);
+
+        QString displayName() const override;
+        void setDisplayName(const QString &name);
+
+        QIcon icon() const;
+        void setIcon(const QIcon icon);
+
+      private:
+        QString m_name;
+
+        mutable QIcon m_icon;
+    };
+
     class XMakeTargetNode final: public ProjectExplorer::ProjectNode {
       public:
         XMakeTargetNode(const Utils::FilePath &directory,

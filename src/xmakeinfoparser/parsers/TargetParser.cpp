@@ -56,6 +56,9 @@ namespace XMakeProjectManager::Internal {
         auto group   = json_target["group"].toString();
         target.group = group.split('/');
 
+        auto json_packages = json_target["packages"].toArray();
+        target.packages    = extractLanguages(json_packages);
+
         return target;
     }
 
@@ -109,5 +112,19 @@ namespace XMakeProjectManager::Internal {
                        [](const auto &v) { return v.toString(); });
 
         return languages;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto TargetParser::extractPackages(const QJsonArray &json_packages) -> QStringList {
+        auto packages = QStringList {};
+        packages.reserve(std::size(json_packages));
+
+        std::transform(std::cbegin(json_packages),
+                       std::cend(json_packages),
+                       std::back_inserter(packages),
+                       [](const auto &v) { return v.toString(); });
+
+        return packages;
     }
 } // namespace XMakeProjectManager::Internal

@@ -33,6 +33,8 @@ namespace XMakeProjectManager::Internal {
 
         QStringList group;
 
+        QStringList packages;
+
         static QString fullName(const Utils::FilePath &srcDir,
                                 const QString &target_file,
                                 const QString &defined_in);
