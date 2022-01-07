@@ -42,9 +42,7 @@ namespace XMakeProjectManager::Internal {
                           int line_number_cap_index,
                           int error_cap_index);
 
-        const QRegularExpression m_error_file_location_regex {
-            R"|(error: (.*) (.*):(\d+): (.*))|"
-        };
+        const QRegularExpression m_error_file_location_regex { R"|(error:(.*) (.*):(\d+): (.*))|" };
         const QRegularExpression m_options_errors_regex { R"(error: (.*))" };
         const QRegularExpression m_warnings_regex { R"(warning: (.*))" };
         const QRegularExpression m_warning_file_location_regex { R"(warning: (.*) at (.*):(\d+))" };
