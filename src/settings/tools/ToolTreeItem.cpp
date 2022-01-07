@@ -13,7 +13,7 @@ namespace XMakeProjectManager::Internal {
     ToolTreeItem::ToolTreeItem(QString name)
         : m_name { std::move(name) },
           m_auto_detected { false }, m_id { Utils::Id::fromString(QUuid::createUuid().toString()) },
-          m_unsaved_changes { true } {
+          m_unsaved_changes { true }, m_autorun { false }, m_auto_accept_requests { false } {
         selfCheck();
         updateTooltip();
     }
@@ -22,7 +22,8 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ToolTreeItem::ToolTreeItem(const XMakeWrapper &tool)
         : m_name { tool.name() }, m_executable { tool.exe() },
-          m_auto_detected { tool.autoDetected() }, m_id { tool.id() } {
+          m_auto_detected { tool.autoDetected() }, m_id { tool.id() }, m_autorun { tool.autorun() },
+          m_auto_accept_requests { tool.autoAcceptRequests() } {
         selfCheck();
         updateTooltip();
     }
@@ -94,7 +95,10 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto ToolTreeItem::update(QString name, Utils::FilePath exe) -> void {
+    auto ToolTreeItem::update(QString name,
+                              Utils::FilePath exe,
+                              bool autorun,
+                              bool auto_accept_requests) -> void {
         m_unsaved_changes = true;
 
         m_name = std::move(name);
@@ -105,6 +109,9 @@ namespace XMakeProjectManager::Internal {
             selfCheck();
             updateTooltip();
         }
+
+        m_autorun              = autorun;
+        m_auto_accept_requests = auto_accept_requests;
     }
 
     ////////////////////////////////////////////////////
@@ -122,11 +129,13 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto ToolTreeItem::clone(const ToolTreeItem &other) -> void {
-        m_name            = tr("Clone of %1").arg(other.m_name);
-        m_executable      = other.m_executable;
-        m_auto_detected   = false;
-        m_id              = Utils::Id::fromString(QUuid::createUuid().toString());
-        m_unsaved_changes = true;
+        m_name                 = tr("Clone of %1").arg(other.m_name);
+        m_executable           = other.m_executable;
+        m_auto_detected        = false;
+        m_id                   = Utils::Id::fromString(QUuid::createUuid().toString());
+        m_unsaved_changes      = true;
+        m_autorun              = other.m_autorun;
+        m_auto_accept_requests = other.m_auto_accept_requests;
 
         selfCheck();
         updateTooltip();

@@ -33,12 +33,14 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto ToolsModel::updateItem(const Utils::Id &item_id,
                                 const QString &name,
-                                const Utils::FilePath &exe) -> void {
+                                const Utils::FilePath &exe,
+                                bool autorun,
+                                bool auto_accept_requests) -> void {
         auto item = findItemAtLevel<2>([&item_id](auto n) { return n->id() == item_id; });
 
         QTC_ASSERT(item, return );
 
-        item->update(name, exe);
+        item->update(name, exe, autorun, auto_accept_requests);
     }
 
     ////////////////////////////////////////////////////

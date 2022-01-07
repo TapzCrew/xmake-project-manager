@@ -93,7 +93,8 @@ namespace XMakeProjectManager::Internal {
 
         Command configure(const Utils::FilePath &source_directory,
                           const Utils::FilePath &build_directory,
-                          const QStringList &options = {}) const;
+                          const QStringList &options = {},
+                          bool wipe                  = false) const;
 
         Command introspect(const Utils::FilePath &source_directory);
 

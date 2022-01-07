@@ -144,8 +144,8 @@ namespace XMakeProjectManager::Internal {
         data.insert(QLatin1String { Constants::ToolsSettings::UUID_KEY }, xmake.id().toSetting());
         data.insert(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY },
                     QLatin1String { Constants::ToolsSettings::TOOL_TYPE_XMAKE });
-        data.insert(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY }, xmake.autorun());
-        data.insert(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY },
+        data.insert(QLatin1String { Constants::ToolsSettings::AUTORUN_KEY }, xmake.autorun());
+        data.insert(QLatin1String { Constants::ToolsSettings::AUTO_ACCEPT_REQUESTS_KEY },
                     xmake.autoAcceptRequests());
 
         return data;
@@ -158,6 +158,8 @@ namespace XMakeProjectManager::Internal {
             data[QLatin1String { Constants::ToolsSettings::NAME_KEY }].toString(),
             Utils::FilePath::fromVariant(data[QLatin1String { Constants::ToolsSettings::EXE_KEY }]),
             Utils::Id::fromSetting(data[QLatin1String { Constants::ToolsSettings::UUID_KEY }]),
-            data[QLatin1String { Constants::ToolsSettings::AUTODETECTED_KEY }].toBool());
+            data[QLatin1String { Constants::ToolsSettings::AUTODETECTED_KEY }].toBool(),
+            data[QLatin1String { Constants::ToolsSettings::AUTORUN_KEY }].toBool(),
+            data[QLatin1String { Constants::ToolsSettings::AUTO_ACCEPT_REQUESTS_KEY }].toBool());
     }
 } // namespace XMakeProjectManager::Internal

@@ -7,6 +7,7 @@
 #include <coreplugin/icontext.h>
 
 #include <projectexplorer/deploymentdata.h>
+#include <projectexplorer/kitinformation.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectimporter.h>
@@ -35,6 +36,9 @@ namespace XMakeProjectManager::Internal {
         if (!XMakeToolKitAspect::isValid(k))
             result.append(createProjectTask(ProjectExplorer::Task::TaskType::Error,
                                             tr("No XMake tool set.")));
+        if (ProjectExplorer::ToolChainKitAspect::toolChains(k).isEmpty())
+            result.append(createProjectTask(ProjectExplorer::Task::TaskType::Warning,
+                                            tr("No compilers set in kit.")));
 
         return result;
     }

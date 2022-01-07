@@ -36,7 +36,7 @@ namespace XMakeProjectManager::Internal {
         bool hasUnsavedChanges() const noexcept;
         void setSaved() noexcept;
 
-        void update(QString name, Utils::FilePath exe);
+        void update(QString name, Utils::FilePath exe, bool autorun, bool auto_accept_requests);
 
       private:
         void selfCheck();

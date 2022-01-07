@@ -23,7 +23,7 @@ namespace XMakeProjectManager::Internal {
         setInitializer([this, target](const auto &info) {
             m_build_type = xmakeBuildType(info.typeName);
 
-            m_parameters = QString { "-m %1" }.arg(info.typeName);
+            m_parameters = QString { "-v -m %1" }.arg(info.typeName);
 
             auto *kit = target->kit();
             if (info.buildDirectory.isEmpty())

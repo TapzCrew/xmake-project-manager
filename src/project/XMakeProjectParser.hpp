@@ -35,7 +35,8 @@ namespace XMakeProjectManager::Internal {
 
         bool configure(const Utils::FilePath &source_path,
                        const Utils::FilePath &build_path,
-                       const QStringList &args);
+                       const QStringList &args,
+                       bool wipe = false);
 
         bool wipe(const Utils::FilePath &source_path,
                   const Utils::FilePath &build_path,

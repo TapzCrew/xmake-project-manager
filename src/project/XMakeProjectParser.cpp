@@ -106,7 +106,8 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto XMakeProjectParser::configure(const Utils::FilePath &source_path,
                                        const Utils::FilePath &build_path,
-                                       const QStringList &args) -> bool {
+                                       const QStringList &args,
+                                       bool wipe) -> bool {
         m_src_dir   = source_path;
         m_build_dir = build_path;
 
@@ -118,8 +119,6 @@ namespace XMakeProjectManager::Internal {
 
         m_pending_commands.enqueue(
             std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
-        m_pending_commands.enqueue(
-            std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
 
         return m_process.run(cmd, m_env, m_project_name, true);
     }
@@ -129,8 +128,7 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProjectParser::wipe(const Utils::FilePath &source_path,
                                   const Utils::FilePath &build_path,
                                   const QStringList &args) -> bool {
-        return QFile::remove(
-            build_path.resolvePath(QString::fromLatin1(Constants::XMAKE_INFO_DIR)).path());
+        return configure(source_path, build_path, args, true);
     }
 
     ////////////////////////////////////////////////////

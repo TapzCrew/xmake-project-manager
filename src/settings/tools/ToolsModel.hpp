@@ -18,8 +18,11 @@ namespace XMakeProjectManager::Internal {
 
         ToolTreeItem *xmakeToolTreeItem(const QModelIndex &index) const;
 
-        void updateItem(const Utils::Id &item_id, const QString &name, const Utils::FilePath &exe);
-
+        void updateItem(const Utils::Id &item_id,
+                        const QString &name,
+                        const Utils::FilePath &exe,
+                        bool autorun,
+                        bool auto_accept_requests);
         void addXMakeTool();
         void removeXMakeTool(ToolTreeItem *item);
         ToolTreeItem *cloneXMakeTool(ToolTreeItem *item);
