@@ -18,7 +18,7 @@ namespace XMakeProjectManager::Internal {
         };
         using SourceGroupList = std::vector<SourceGroup>;
 
-        enum class Kind { SHARED, BINARY, STATIC };
+        enum class Kind { SHARED, BINARY, STATIC, OBJECT, HEADERONLY, PHONY };
 
         QString name;
         Kind kind;

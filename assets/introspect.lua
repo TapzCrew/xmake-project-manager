@@ -108,7 +108,12 @@ function main ()
         table.sort(header_files)
 
         local target_file = target:targetfile()
-        target_file = path.absolute(target_file, project:directory()):gsub("%\\", "/")
+
+        if target_file then
+            target_file = path.absolute(target_file, project:directory()):gsub("%\\", "/")
+        else
+            target_file = ""
+        end
 
         local defined_in = path.absolute("xmake.lua", target:scriptdir()):gsub("%\\", "/")
 

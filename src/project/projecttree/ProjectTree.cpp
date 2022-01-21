@@ -20,6 +20,8 @@ namespace XMakeProjectManager::Internal {
         switch (kind) {
             case Target::Kind::BINARY: return ProjectExplorer::ProductType::App;
             case Target::Kind::SHARED:
+            case Target::Kind::OBJECT:
+            case Target::Kind::HEADERONLY:
             case Target::Kind::STATIC: return ProjectExplorer::ProductType::Lib;
         }
 
