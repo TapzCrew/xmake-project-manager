@@ -190,6 +190,7 @@ namespace XMakeProjectManager::Internal {
 
         if (kit() && buildConfiguration()) {
             auto kit_info = ProjectExplorer::KitInfo { kit() };
+
             m_cpp_code_model_updater.update(
                 { project(),
                   QtSupport::CppKitInfo { kit() },

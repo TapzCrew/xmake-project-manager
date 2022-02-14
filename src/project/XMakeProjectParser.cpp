@@ -40,7 +40,7 @@ namespace XMakeProjectManager::Internal {
         auto path = extractValueIfMatches(arg, { "-I", "/I", "-imsvc ", "/imsvc " });
         if (path) return ProjectExplorer::HeaderPath::makeUser(*path);
 
-        path = extractValueIfMatches(arg, { "-isystem ", "/external:I" });
+        path = extractValueIfMatches(arg, { "-isystem ", "/external:I", "-external:I" });
         if (path) return ProjectExplorer::HeaderPath::makeSystem(*path);
 
         return Utils::nullopt;
@@ -315,6 +315,18 @@ namespace XMakeProjectManager::Internal {
                                               const ProjectExplorer::ToolChain *cxx_toolchain,
                                               const ProjectExplorer::ToolChain *c_toolchain) const
         -> ProjectExplorer::RawProjectPart {
+        const auto flags = splitArgs(sources.arguments, m_src_dir);
+        qCDebug(xmake_project_parser_log)
+            << "---------------- TARGET " << target.name << " -------------------";
+        for (const auto &path : flags.include_paths)
+            qCDebug(xmake_project_parser_log)
+                << "INCLUDEPATH: " << path.path << ":" << static_cast<int>(path.type);
+        for (const auto &macro : flags.macros)
+            qCDebug(xmake_project_parser_log) << "MACRO: " << macro.key << ":" << macro.value;
+        qCDebug(xmake_project_parser_log) << "ARGUMENTS: " << flags.arguments;
+        qCDebug(xmake_project_parser_log) << "SOURCES: " << sources.sources;
+        qCDebug(xmake_project_parser_log) << "SOURCES LANGUAGE: " << sources.language;
+
         auto target_file = m_src_dir.resolvePath(target.target_file).path();
 
         auto part = ProjectExplorer::RawProjectPart {};
@@ -330,18 +342,18 @@ namespace XMakeProjectManager::Internal {
 
         part.setDisplayName(target.name);
         part.setBuildSystemTarget(Target::fullName(m_src_dir, target_file, target.defined_in));
-        part.setFiles(absolute_sources);
+        part.setFiles(absolute_sources + target.headers);
         part.setProjectFileLocation(target.defined_in);
-
-        auto flags = splitArgs(sources.arguments, m_src_dir);
 
         part.setHeaderPaths(flags.include_paths);
         part.setMacros(flags.macros);
+        part.setIncludedFiles(target.headers);
 
+        auto base_dir = Utils::FilePath::fromString(target.defined_in).absolutePath().toString();
         if (sources.language == "cxx" || sources.language == "cxxmodule")
-            part.setFlagsForCxx({ cxx_toolchain, flags.arguments, {} });
+            part.setFlagsForCxx({ cxx_toolchain, flags.arguments, base_dir });
         else if (sources.language == "cc")
-            part.setFlagsForC({ c_toolchain, flags.arguments, {} });
+            part.setFlagsForC({ c_toolchain, flags.arguments, base_dir });
 
         part.setBuildTargetType((target.kind == Target::Kind::BINARY)
                                     ? ProjectExplorer::BuildTargetType::Executable
