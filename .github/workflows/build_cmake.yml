@@ -126,7 +126,7 @@ jobs:
             set(qt_package_suffix "-MacOS-MacOS_10_13-Clang-MacOS-MacOS_10_13-X86_64")
           else()
             set(qt_dir_prefix "${qt_version}/macos")
-            set(qt_package_suffix "-MacOS-MacOS_12_00-Clang-MacOS-MacOS_12_00-X86_64-ARM64")
+            set(qt_package_suffix "-MacOS-MacOS_12-Clang-MacOS-MacOS_12-X86_64-ARM64")
           endif()
         endif()
 
