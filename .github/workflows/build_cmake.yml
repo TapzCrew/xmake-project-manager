@@ -116,7 +116,7 @@ jobs:
           if("${qt_version_major}" STREQUAL "5")
             set(qt_package_suffix "-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64")
           else()
-            set(qt_package_suffix "-Linux-RHEL_8_2-GCC-Linux-RHEL_8_2-X86_64")
+            set(qt_package_suffix "-Linux-RHEL_8_4-GCC-Linux-RHEL_8_4-X86_64")
           endif()
         elseif ("${{ runner.os }}" STREQUAL "macOS")
           set(url_os "mac_x64")
