@@ -4,11 +4,11 @@ on: [push]
 
 env:
   PLUGIN_NAME: XMakeProjectManager
-  QT_VERSION: 6.2.4
+  QT_VERSION: 6.2.3
   QT_CREATOR_VERSION: 7.0.0
   QT_CREATOR_SNAPSHOT: NO
-  CMAKE_VERSION: 3.18.3
-  NINJA_VERSION: 1.10.1
+  CMAKE_VERSION: 3.22.3
+  NINJA_VERSION: 1.10.2
 
 jobs:
   build:
@@ -20,8 +20,7 @@ jobs:
         - {
             name: "Windows Latest MSVC", artifact: "Windows-x64",
             os: windows-latest,
-            cc: "cl", cxx: "cl",
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
           }
         - {
             name: "Ubuntu Latest GCC", artifact: "Linux-x64",
@@ -35,7 +34,7 @@ jobs:
           }
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Download Ninja and CMake
       shell: cmake -P {0}
@@ -47,6 +46,13 @@ jobs:
           set(ninja_suffix "win.zip")
           set(cmake_suffix "win64-x64.zip")
           set(cmake_dir "cmake-${cmake_version}-win64-x64/bin")
+
+          if(EXISTS "${{ matrix.config.environment_script }}")
+              message(STATUS "${{ matrix.config.environment_script }} EXISTS !")
+          else()
+              message(FATAL "${{ matrix.config.environment_script }} NOT EXISTS !")
+          endif()
+          
         elseif ("${{ runner.os }}" STREQUAL "Linux")
           set(ninja_suffix "linux.zip")
           set(cmake_suffix "Linux-x86_64.tar.gz")

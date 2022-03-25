@@ -347,7 +347,7 @@ namespace XMakeProjectManager::Internal {
 
         part.setHeaderPaths(flags.include_paths);
         part.setMacros(flags.macros);
-        part.setIncludedFiles(target.headers);
+        // part.setIncludedFiles(target.headers);
 
         auto base_dir = Utils::FilePath::fromString(target.defined_in).absolutePath().toString();
         if (sources.language == "cxx" || sources.language == "cxxmodule")
