@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(XMakeProjectManager CXX)
+project(XMakeProjectManager VERSION 7.0.0
+                            DESCRIPTION "QtCreator XMake project support"
+                            LANGUAGES CXX)
 
 list(APPEND CMAKE_PREFIX_PATH "${QTC_BUILD_PATH}")
 
@@ -28,29 +30,30 @@ file(GLOB_RECURSE
     assets/*.lua
 )
 
-add_qtc_plugin(${PROJECT_NAME}
+add_qtc_plugin(
+    ${PROJECT_NAME}
     PLUGIN_DEPENDS
-	QtCreator::Core
+        QtCreator::Core
         QtCreator::CppEditor
         QtCreator::ProjectExplorer
-	QtCreator::QtSupport
+        QtCreator::QtSupport
     PLUGIN_RECOMMENDS
-	QtCreator::Designer
-	QtCreator::LangageClient
+        QtCreator::Designer
+        QtCreator::LangageClient
     DEPENDS
-	Qt::Core
+        Qt::Core
         Qt::Widgets
-	QtCreator::Core
-	QtCreator::ExtensionSystem
-	QtCreator::Utils
+        QtCreator::Core
+        QtCreator::ExtensionSystem
+        QtCreator::Utils
     SOURCES
-	${source_files}
+        ${source_files}
 
-	${ui_files}
+        ${ui_files}
 
-	${assets_files}
+        ${assets_files}
 
-	resources.qrc
+        resources.qrc
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE src/)

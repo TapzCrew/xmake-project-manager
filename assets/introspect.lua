@@ -42,48 +42,50 @@ function main ()
             end
 
             local arguments = {}
-            for _, file in ipairs(batch.sourcefiles) do
-                if string_ends(file, ".mpp") or string_ends(file, ".ixx") or string_ends(file, ".cppm") or string_ends(file, ".mxx") then -- can't do better for now with C++20 modules
-                   arguments = last_cxx_arguments
-                   if compiler.has_flags("cxx", "-fmodules-ts") then
-                       table.insert(arguments, "-fmodules-ts")
-                   elseif compiler.has_flags("cxx", "-fmodules") then
-                      table.insert(arguments, "-fmodules-ts")
-                   elseif compiler.has_flags("cxx", "/experimental:module") then
-                       table.insert(arguments, "/experimental:module")
-                   end
-                   break
+            if string_starts(batch.rulename, "c") then
+                for _, file in ipairs(batch.sourcefiles) do
+                        if string_ends(file, ".mpp") or string_ends(file, ".ixx") or string_ends(file, ".cppm") or string_ends(file, ".mxx") then -- can't do better for now with C++20 modules
+                           arguments = last_cxx_arguments
+                           if compiler.has_flags("cxx", "-fmodules-ts") then
+                                   table.insert(arguments, "-fmodules-ts")
+                           elseif compiler.has_flags("cxx", "-fmodules") then
+                                  table.insert(arguments, "-fmodules-ts")
+                           elseif compiler.has_flags("cxx", "/experimental:module") then
+                                   table.insert(arguments, "/experimental:module")
+                           end
+                           break
+                        end
+
+                        local args = compiler.compflags(file, {target = target})
+
+                        local ignore_next_arg = false
+
+                        for i, argument in ipairs(args) do
+                                if ignore_next_arg then
+                                        ignore_next_arg = false
+                                        goto continue2
+                                end
+
+                                if string_starts(argument, "-I") then
+                                        local p = argument:sub(3, argument:len())
+                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                        table.insert(arguments, format("-I%s", p))
+                                elseif(string_starts(argument, "-isystem")) then
+                                        table.insert(arguments, argument .. " ".. args[i + 1])
+                                        ignore_next_arg = true
+                                else
+                                        table.insert(arguments, argument)
+                                end
+
+                                ::continue2::
+                         end
+
+                         if batch.sourcekind and batch.sourcekind == "cxx" then
+                                last_cxx_arguments = arguments
+                         end
+                         break
                 end
-
-                local args = compiler.compflags(file, {target = target})
-
-                local ignore_next_arg = false
-
-                for i, argument in ipairs(args) do
-                    if ignore_next_arg then
-                        ignore_next_arg = false
-                        goto continue2
-                    end
-
-                    if string_starts(argument, "-I") then
-                        local p = argument:sub(3, argument:len())
-                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                        table.insert(arguments, format("-I%s", p))
-                    elseif(string_starts(argument, "-isystem")) then
-                        table.insert(arguments, argument .. " ".. args[i + 1])
-                        ignore_next_arg = true
-                    else
-                        table.insert(arguments, argument)
-                    end
-
-                    ::continue2::
-                 end
-
-                 if batch.sourcekind and batch.sourcekind == "cxx" then
-                    last_cxx_arguments = arguments
-                 end
-                 break
             end
 
             kind = ""
