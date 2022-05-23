@@ -192,13 +192,12 @@ namespace XMakeProjectManager::Internal {
         setRootProjectNode(m_parser.takeProjectNode());
 
         if (kit() && buildConfiguration()) {
-            auto kit_info = ProjectExplorer::KitInfo { kit() };
+            auto kit_info = QtSupport::CppKitInfo { kit() };
 
-            m_cpp_code_model_updater.update(
-                { project(),
-                  QtSupport::CppKitInfo { kit() },
-                  buildConfiguration()->environment(),
-                  m_parser.buildProjectParts(kit_info.cxxToolChain, kit_info.cToolChain) });
+            m_cpp_code_model_updater.update({ project(),
+                                              QtSupport::CppKitInfo { kit() },
+                                              buildConfiguration()->environment(),
+                                              m_parser.buildProjectParts(kit_info) });
         }
 
         setApplicationTargets(m_parser.appTargets());

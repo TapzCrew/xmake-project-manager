@@ -26,6 +26,10 @@ namespace ProjectExplorer {
     class Project;
 }
 
+namespace QtSupport {
+    class CppKitInfo;
+}
+
 namespace XMakeProjectManager::Internal {
     class XMakeProjectParser: public QObject {
         Q_OBJECT
@@ -58,8 +62,7 @@ namespace XMakeProjectManager::Internal {
 
         QList<ProjectExplorer::BuildTargetInfo> appTargets() const;
         ProjectExplorer::RawProjectParts
-            buildProjectParts(const ProjectExplorer::ToolChain *cxx_toolchain,
-                              const ProjectExplorer::ToolChain *c_toolchain) const;
+            buildProjectParts(const QtSupport::CppKitInfo &kit_info) const;
 
         const Utils::FilePath &srcDir() const noexcept;
         const Utils::FilePath &buildDir() const noexcept;
@@ -83,8 +86,7 @@ namespace XMakeProjectManager::Internal {
         ProjectExplorer::RawProjectPart
             buildProjectPart(const Target &target,
                              const Target::SourceGroup &sources,
-                             const ProjectExplorer::ToolChain *cxx_toolchain,
-                             const ProjectExplorer::ToolChain *c_toolchain) const;
+                             const QtSupport::CppKitInfo &kit_info) const;
 
         XMakeProcess m_process;
         bool m_configuring;

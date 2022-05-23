@@ -16,6 +16,9 @@
 #include <utils/fileinprojectfinder.h>
 #include <utils/runextensions.h>
 
+#include <qtsupport/qtcppkitinfo.h>
+#include <qtsupport/qtkitinformation.h>
+
 #include <QJsonDocument>
 #include <QStringList>
 
@@ -185,8 +188,7 @@ namespace XMakeProjectManager::Internal {
         return apps;
     }
 
-    auto XMakeProjectParser::buildProjectParts(const ProjectExplorer::ToolChain *cxx_toolchain,
-                                               const ProjectExplorer::ToolChain *c_toolchain) const
+    auto XMakeProjectParser::buildProjectParts(const QtSupport::CppKitInfo &kit_info) const
         -> ProjectExplorer::RawProjectParts {
         auto parts = ProjectExplorer::RawProjectParts {};
 
@@ -194,11 +196,8 @@ namespace XMakeProjectManager::Internal {
             std::transform(std::cbegin(target.sources),
                            std::cend(target.sources),
                            std::back_inserter(parts),
-                           [&target, &cxx_toolchain, &c_toolchain, this](const auto &source_group) {
-                               return buildProjectPart(target,
-                                                       source_group,
-                                                       cxx_toolchain,
-                                                       c_toolchain);
+                           [&target, &kit_info, this](const auto &source_group) {
+                               return buildProjectPart(target, source_group, kit_info);
                            });
         }
 
@@ -316,8 +315,7 @@ namespace XMakeProjectManager::Internal {
 
     auto XMakeProjectParser::buildProjectPart(const Target &target,
                                               const Target::SourceGroup &sources,
-                                              const ProjectExplorer::ToolChain *cxx_toolchain,
-                                              const ProjectExplorer::ToolChain *c_toolchain) const
+                                              const QtSupport::CppKitInfo &kit_info) const
         -> ProjectExplorer::RawProjectPart {
         const auto flags = splitArgs(sources.arguments, m_src_dir);
         qCDebug(xmake_project_parser_log)
@@ -349,15 +347,35 @@ namespace XMakeProjectManager::Internal {
         part.setFiles(absolute_sources + target.headers);
         part.setProjectFileLocation(target.defined_in);
 
-        part.setHeaderPaths(flags.include_paths);
+        auto include_paths = flags.include_paths;
+
+        if (target.use_qt && kit_info.qtVersion) {
+            const auto qt_header_path = kit_info.qtVersion->headerPath();
+            include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(qt_header_path));
+            for (const auto &framework : target.frameworks) {
+                if (framework.startsWith("Qt") && framework.endsWith("private")) {
+                    auto name = framework.left(framework.size() - 7);
+
+                    include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
+                        qt_header_path / name / kit_info.qtVersion->qtVersionString()));
+                    include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
+                        qt_header_path / name / kit_info.qtVersion->qtVersionString() / name));
+                } else if (framework.startsWith("Qt")) {
+                    include_paths.emplace_back(
+                        ProjectExplorer::HeaderPath::makeSystem(qt_header_path / framework));
+                }
+            }
+        }
+
+        part.setHeaderPaths(include_paths);
         part.setMacros(flags.macros);
         // part.setIncludedFiles(target.headers);
 
         auto base_dir = Utils::FilePath::fromString(target.defined_in).absolutePath().toString();
         if (sources.language == "cxx" || sources.language == "cxxmodule")
-            part.setFlagsForCxx({ cxx_toolchain, flags.arguments, base_dir });
+            part.setFlagsForCxx({ kit_info.cxxToolChain, flags.arguments, base_dir });
         else if (sources.language == "cc")
-            part.setFlagsForC({ c_toolchain, flags.arguments, base_dir });
+            part.setFlagsForC({ kit_info.cToolChain, flags.arguments, base_dir });
 
         part.setBuildTargetType((target.kind == Target::Kind::BINARY)
                                     ? ProjectExplorer::BuildTargetType::Executable

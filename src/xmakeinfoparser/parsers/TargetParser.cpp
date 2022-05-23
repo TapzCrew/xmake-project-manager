@@ -80,6 +80,8 @@ namespace XMakeProjectManager::Internal {
         auto json_frameworks = json_target["frameworks"].toArray();
         target.frameworks    = extractArray(json_frameworks);
 
+        target.use_qt = json_target["use_qt"].toBool();
+
         return target;
     }
 

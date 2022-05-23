@@ -76,7 +76,25 @@ function main ()
                                         p = path.absolute(p, project:directory()):gsub("%\\", "/")
 
                                         table.insert(arguments, format("-I%s", p))
+                                elseif string_starts(argument, "-external:I") then
+                                        local p = argument:sub(12, argument:len())
+                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                        table.insert(arguments, format("-external:I%s", p))
                                 elseif(string_starts(argument, "-isystem")) then
+                                        table.insert(arguments, argument .. " ".. args[i + 1])
+                                        ignore_next_arg = true
+                                elseif string_starts(argument, "/I") then
+                                        local p = argument:sub(3, argument:len())
+                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                        table.insert(arguments, format("/I%s", p))
+                                elseif string_starts(argument, "/external:I") then
+                                        local p = argument:sub(12, argument:len())
+                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                        table.insert(arguments, format("/external:I%s", p))
+                                elseif(string_starts(argument, "/isystem")) then
                                         table.insert(arguments, argument .. " ".. args[i + 1])
                                         ignore_next_arg = true
                                 else
@@ -129,8 +147,9 @@ function main ()
         for _, framework in ipairs(frameworks) do
             if framework:startswith("Qt") then
                 use_qt = true
-                goto continue3
             end
+
+
         end
         ::continue3::
 

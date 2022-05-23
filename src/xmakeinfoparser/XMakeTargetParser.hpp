@@ -41,6 +41,8 @@ namespace XMakeProjectManager::Internal {
 
         QStringList frameworks;
 
+        bool use_qt;
+
         static QString fullName(const Utils::FilePath &srcDir,
                                 const QString &target_file,
                                 const QString &defined_in);
