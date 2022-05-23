@@ -136,29 +136,34 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto extractQrcFileTo(QString input, QString output) -> void {
-        QString name = QFileInfo { input }.fileName();
+    auto extractQrcFileTo(const Utils::FilePath &input, const Utils::FilePath &output) -> void {
+        if (!output.exists() || fileChecksum(input.toString(), QCryptographicHash::Sha256) !=
+                                    fileChecksum(output.toString(), QCryptographicHash::Sha256)) {
+            qCDebug(xmake_xmake_wrapper_log)
+                << QString { "Extracting %1 to %2" }.arg(input.toUserOutput(),
+                                                         output.toUserOutput());
 
-        if (!QFileInfo::exists(output) || fileChecksum(input, QCryptographicHash::Sha256) !=
-                                              fileChecksum(output, QCryptographicHash::Sha256)) {
-            qCDebug(xmake_xmake_wrapper_log) << QString { "Extracting %1 to %2" }.arg(name, output);
-
-            if (QFileInfo::exists(output)) QFile::remove(output);
-
-            if (!QFile::copy(input, output)) {
-                qCDebug(xmake_xmake_wrapper_log) << QString { "Failed to extract %1" }.arg(name);
+            if (output.exists()) {
+                if (!output.removeFile()) {
+                    qCWarning(xmake_xmake_wrapper_log())
+                        << QString { "Failed to remove %1" }.arg(output.toUserOutput());
+                }
             }
+
+            if (input.copyFile(output))
+                qCDebug(xmake_xmake_wrapper_log)
+                    << QString { "Failed to extract %1" }.arg(input.toUserOutput());
         }
     }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeWrapper::decompressIntrospectLuaIfNot() -> QString {
-        auto dir = Core::ICore::userResourcePath("xmake-introspect-files");
-        if (!QFileInfo::exists(dir.toString())) dir.createDir();
+        auto dir = Core::ICore::cacheResourcePath("xmake-introspect-files");
+        if (!dir.exists()) dir.createDir();
 
         auto introspect_path = dir.pathAppended("introspect.lua");
-        extractQrcFileTo(":/xmakeproject/assets/introspect.lua", introspect_path.toString());
+        extractQrcFileTo(":/xmakeproject/assets/introspect.lua", introspect_path);
 
         return introspect_path.toString();
     }
