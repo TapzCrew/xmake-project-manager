@@ -1,3 +1,7 @@
+// Copyright (C) 2022 Arthur LAURENT <arthur.laurent4@gmail.com>
+// This file is subject to the license terms in the LICENSE file
+// found in the top-level of this distribution
+
 #include "ToolsSettingsAccessor.hpp"
 
 #include <XMakeProjectConstant.hpp>
@@ -73,7 +77,7 @@ namespace XMakeProjectManager::Internal {
                     map.value(QLatin1String { Constants::ToolsSettings::TOOL_TYPE_KEY },
                               Constants::ToolsSettings::TOOL_TYPE_XMAKE); // TODO xrepo
 
-                if(type == Constants::ToolsSettings::TOOL_TYPE_XMAKE)
+                if (type == Constants::ToolsSettings::TOOL_TYPE_XMAKE)
                     result.emplace_back(fromVariantMap(data[name].toMap()));
             }
         }
