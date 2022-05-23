@@ -124,7 +124,26 @@ function main ()
 
         local defined_in = path.absolute("xmake.lua", target:scriptdir()):gsub("%\\", "/")
 
-        table.insert(targets, { name = name, kind = target:targetkind(), defined_in = defined_in, source_batches = source_batches, header_files = header_files, target_file = target_file, packages = target:get("packages"), group = target:get("group") } )
+        local use_qt = false
+        local frameworks = target:get("frameworks")
+        for _, framework in ipairs(frameworks) do
+            if framework:startswith("Qt") then
+                use_qt = true
+                goto continue3
+            end
+        end
+        ::continue3::
+
+        table.insert(targets, { name = name,
+                                kind = target:targetkind(),
+                                defined_in = defined_in,
+                                source_batches = source_batches,
+                                header_files = header_files,
+                                target_file = target_file,
+                                packages = target:get("packages"),
+                                frameworks = target:get("frameworks"),
+                                use_qt = use_qt,
+                                group = target:get("group") } )
     end
 
     table.sort(targets, function(first, second) return first.name > second.name end)

@@ -11,6 +11,20 @@
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    auto extractArray(const QJsonArray &array) -> QStringList {
+        auto output = QStringList {};
+        output.reserve(std::size(array));
+
+        std::transform(std::cbegin(array),
+                       std::cend(array),
+                       std::back_inserter(output),
+                       [](const auto &v) { return v.toString(); });
+
+        return output;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     TargetParser::TargetParser(const QJsonDocument &json) {
         auto json_targets = get<QJsonArray>(json.object(), "targets");
         if (json_targets) m_targets = loadTargets(*json_targets);
@@ -50,18 +64,21 @@ namespace XMakeProjectManager::Internal {
         target.sources           = extractSources(json_source_batches);
 
         auto json_headers = json_target["header_files"].toArray();
-        target.headers    = extractHeaders(json_headers);
+        target.headers    = extractArray(json_headers);
 
         target.target_file = json_target["target_file"].toString();
 
         auto json_languages = json_target["languages"].toArray();
-        target.languages    = extractLanguages(json_languages);
+        target.languages    = extractArray(json_languages);
 
         auto group   = json_target["group"].toString();
         target.group = group.split('/');
 
         auto json_packages = json_target["packages"].toArray();
-        target.packages    = extractLanguages(json_packages);
+        target.packages    = extractArray(json_packages);
+
+        auto json_frameworks = json_target["frameworks"].toArray();
+        target.frameworks    = extractArray(json_frameworks);
 
         return target;
     }
@@ -88,47 +105,5 @@ namespace XMakeProjectManager::Internal {
         return { source["kind"].toString(),
                  source["source_files"].toVariant().toStringList(),
                  source["arguments"].toVariant().toStringList() };
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto TargetParser::extractHeaders(const QJsonArray &json_headers) -> QStringList {
-        auto headers = QStringList {};
-        headers.reserve(std::size(json_headers));
-
-        std::transform(std::cbegin(json_headers),
-                       std::cend(json_headers),
-                       std::back_inserter(headers),
-                       [](const auto &v) { return v.toString(); });
-
-        return headers;
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto TargetParser::extractLanguages(const QJsonArray &json_languages) -> QStringList {
-        auto languages = QStringList {};
-        languages.reserve(std::size(json_languages));
-
-        std::transform(std::cbegin(json_languages),
-                       std::cend(json_languages),
-                       std::back_inserter(languages),
-                       [](const auto &v) { return v.toString(); });
-
-        return languages;
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto TargetParser::extractPackages(const QJsonArray &json_packages) -> QStringList {
-        auto packages = QStringList {};
-        packages.reserve(std::size(json_packages));
-
-        std::transform(std::cbegin(json_packages),
-                       std::cend(json_packages),
-                       std::back_inserter(packages),
-                       [](const auto &v) { return v.toString(); });
-
-        return packages;
     }
 } // namespace XMakeProjectManager::Internal

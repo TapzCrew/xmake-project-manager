@@ -202,11 +202,10 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto buildTargetExternalPackagesTree(const Utils::FilePath &path,
                                          const QString &target_name,
-                                         const QStringList &packages)
+                                         const QStringList &packages,
+                                         const QStringList &frameworks)
 
         -> std::unique_ptr<ProjectExplorer::VirtualFolderNode> {
-        if (packages.empty()) return nullptr;
-
         auto parent = createVirtualNode(path, "External Packages");
         if (!parent) return nullptr;
 
@@ -214,15 +213,18 @@ namespace XMakeProjectManager::Internal {
         parent->setIsSourcesOrHeaders(false);
         parent->setListInProject(false);
 
-        for (const auto &package : packages) {
-            auto node =
-                std::make_unique<ProjectExplorer::FileNode>(path / package,
-                                                            ProjectExplorer::FileType::Unknown);
-            node->setIcon(QIcon { ProjectExplorer::Constants::FILEOVERLAY_MODULES });
-            node->setListInProject(false);
+        for (const auto &dependency_list : { std::cref(packages), std::cref(frameworks) })
+            for (const auto &package : dependency_list.get()) {
+                auto node =
+                    std::make_unique<ProjectExplorer::FileNode>(path / package,
+                                                                ProjectExplorer::FileType::Unknown);
+                node->setIcon(QIcon { ProjectExplorer::Constants::FILEOVERLAY_MODULES });
+                node->setListInProject(false);
 
-            parent->addNode(std::move(node));
-        }
+                parent->addNode(std::move(node));
+
+                qCDebug(xmake_project_tree_log) << "Package node" << package;
+            }
 
         return parent;
     }
@@ -339,11 +341,12 @@ namespace XMakeProjectManager::Internal {
                 parent->addNode(std::move(node));
             }
 
-            if (!target.packages.empty()) {
+            if (!(target.packages.empty() && target.frameworks.empty())) {
                 auto node =
                     buildTargetExternalPackagesTree(Utils::FilePath::fromString(target.defined_in),
                                                     target.name,
-                                                    target.packages);
+                                                    target.packages,
+                                                    target.frameworks);
                 if (node) {
                     node->setParentFolderNode(parent);
                     parent->addNode(std::move(node));
