@@ -11,9 +11,9 @@
 
 #include <project/XMakeProjectParser.hpp>
 
-#include <kithelper/KitData.hpp>
-
 #include <xmakeinfoparser/XMakeBuildOptionsParser.hpp>
+
+#include <qtsupport/qtcppkitinfo.h>
 
 namespace XMakeProjectManager::Internal {
     class XMakeBuildConfiguration;
@@ -63,7 +63,7 @@ namespace XMakeProjectManager::Internal {
 
         Utils::FileSystemWatcher m_intro_watcher;
 
-        KitData m_kit_data;
+        QtSupport::CppKitInfo m_kit_info;
 
         BuildOptionsList m_build_options;
     };

@@ -10,8 +10,6 @@
 
 #include <settings/tools/kitaspect/XMakeToolKitAspect.hpp>
 
-#include <kithelper/KitHelper.hpp>
-
 #include <utils/qtcassert.h>
 
 #include <projectexplorer/buildconfiguration.h>
@@ -44,7 +42,8 @@ namespace XMakeProjectManager::Internal {
         : ProjectExplorer::BuildSystem { build_conf }, m_parser { XMakeToolKitAspect::xmakeToolId(
                                                                       build_conf->kit()),
                                                                   build_conf->environment(),
-                                                                  project() } {
+                                                                  project() },
+          m_kit_info { nullptr } {
         init();
     }
 
@@ -173,7 +172,7 @@ namespace XMakeProjectManager::Internal {
     auto XMakeBuildSystem::updateKit(ProjectExplorer::Kit *kit) -> void {
         QTC_ASSERT(kit, return );
 
-        m_kit_data = KitHelper::kitData(kit);
+        m_kit_info = QtSupport::CppKitInfo { kit };
     }
 
     ////////////////////////////////////////////////////
