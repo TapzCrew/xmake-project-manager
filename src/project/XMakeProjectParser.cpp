@@ -352,18 +352,19 @@ namespace XMakeProjectManager::Internal {
         if (target.use_qt && kit_info.qtVersion) {
             const auto qt_header_path = kit_info.qtVersion->headerPath();
             include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(qt_header_path));
+
+            const auto private_str = QString { "private" };
             for (const auto &framework : target.frameworks) {
-                if (framework.startsWith("Qt") && framework.endsWith("private")) {
-                    auto name = framework.left(framework.size() - 7);
+                if (framework.startsWith("Qt") && framework.endsWith(private_str)) {
+                    auto name = framework.left(framework.size() - private_str.size());
 
                     include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
                         qt_header_path / name / kit_info.qtVersion->qtVersionString()));
                     include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
                         qt_header_path / name / kit_info.qtVersion->qtVersionString() / name));
-                } else if (framework.startsWith("Qt")) {
+                } else if (framework.startsWith("Qt"))
                     include_paths.emplace_back(
                         ProjectExplorer::HeaderPath::makeSystem(qt_header_path / framework));
-                }
             }
         }
 
