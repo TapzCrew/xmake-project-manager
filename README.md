@@ -47,7 +47,7 @@ cmake --install .
 ```
 
 # Snapshots
-You can find automatically built snapshots on [Nightly.link](https://nightly.link/Arthapz/xmake-project-manager/workflows/build_cmake/main).
+You can find automatically built snapshots on [Nightly.link](https://nightly.link/Tapzcrew/xmake-project-manager/workflows/build_cmake/main).
 
 Uncompress 7z file, open QtCreator and use QtCreator plugin installer
 
