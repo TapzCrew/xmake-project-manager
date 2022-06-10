@@ -81,7 +81,12 @@ namespace XMakeProjectManager::Internal {
         qCDebug(xmake_build_system_log) << "Wipe";
 
         LOCK();
-        // TODO implement wipe for xmake
+        if (m_parser.configure(projectDirectory(),
+                               buildConfiguration()->buildDirectory(),
+                               configArgs(false),
+                               true)) {
+            return true;
+        }
 
         UNLOCK(false);
 
@@ -139,11 +144,12 @@ namespace XMakeProjectManager::Internal {
 
         updateKit(kit());
 
-        m_intro_watcher.addFile(buildConfiguration()
-                                    ->buildDirectory()
-                                    .pathAppended(QString::fromLatin1(Constants::XMAKE_INFO_DIR))
-                                    .toString(),
-                                Utils::FileSystemWatcher::WatchModifiedDate);
+        m_intro_watcher.addDirectory(buildConfiguration()
+                                         ->buildDirectory()
+                                         .pathAppended(
+                                             QString::fromLatin1(Constants::XMAKE_INFO_DIR))
+                                         .toString(),
+                                     Utils::FileSystemWatcher::WatchModifiedDate);
     }
 
     ////////////////////////////////////////////////////

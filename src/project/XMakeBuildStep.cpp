@@ -137,18 +137,23 @@ namespace XMakeProjectManager::Internal {
             return Utils::CommandLine {};
         }();
 
-        cmd.addArg("b");
+        if (!m_target_name.isEmpty() &&
+            m_target_name == QString::fromLatin1(Constants::Targets::CLEAN)) {
+            cmd.addArg("c");
+        } else {
+            cmd.addArg("b");
 
-        if (!m_command_args.isEmpty())
-            cmd.addArgs(m_command_args, Utils::CommandLine::RawType::Raw);
+            if (!m_command_args.isEmpty())
+                cmd.addArgs(m_command_args, Utils::CommandLine::RawType::Raw);
+
+            if (!m_target_name.isEmpty() &&
+                m_target_name != QString::fromLatin1(Constants::Targets::ALL))
+                cmd.addArg(m_target_name);
+        }
 
         cmd.addArg("-P");
 
         cmd.addArg(QString { "%1" }.arg(project()->projectDirectory().path()));
-
-        if (!m_target_name.isEmpty() &&
-            m_target_name != QString::fromLatin1(Constants::Targets::ALL))
-            cmd.addArg(m_target_name);
 
         return cmd;
     }
@@ -236,7 +241,8 @@ namespace XMakeProjectManager::Internal {
 
         const auto parent_id = bsl->id();
 
-        if (parent_id == ProjectExplorer::Constants::BUILDSTEPS_CLEAN) return "";
+        if (parent_id == ProjectExplorer::Constants::BUILDSTEPS_CLEAN)
+            return QString::fromLatin1(Constants::Targets::CLEAN);
 
         return QString::fromLatin1(Constants::Targets::ALL);
     }
