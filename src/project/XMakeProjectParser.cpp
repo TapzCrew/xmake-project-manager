@@ -366,6 +366,14 @@ namespace XMakeProjectManager::Internal {
                     include_paths.emplace_back(
                         ProjectExplorer::HeaderPath::makeSystem(qt_header_path / framework));
             }
+
+            auto qt_version = Utils::QtMajorVersion::Qt6;
+            if (kit_info.qtVersion->qtVersion().majorVersion == 5)
+                qt_version = Utils::QtMajorVersion::Qt5;
+            else if (kit_info.qtVersion->qtVersion().majorVersion == 4)
+                qt_version = Utils::QtMajorVersion::Qt4;
+
+            part.setQtVersion(qt_version);
         }
 
         part.setHeaderPaths(include_paths);
