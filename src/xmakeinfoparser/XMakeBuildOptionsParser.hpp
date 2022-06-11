@@ -5,13 +5,22 @@
 #pragma once
 
 #include <QString>
+#include <QStringList>
 
+#include <memory>
 #include <vector>
 
 namespace XMakeProjectManager::Internal {
     struct BuildOption {
-        using OwnedPtr = std::unique_ptr<BuildOption>;
+        QString name;
+        QString description;
+        QString value;
+        QStringList values;
+
+        QString xmakeArg() const noexcept;
     };
 
-    using BuildOptionsList = std::vector<BuildOption::OwnedPtr>;
+    using BuildOptionsList = std::vector<std::unique_ptr<BuildOption>>;
 } // namespace XMakeProjectManager::Internal
+
+#include "XMakeBuildOptionsParser.inl"

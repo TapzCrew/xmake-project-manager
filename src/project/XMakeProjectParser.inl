@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "XMakeProjectParser.hpp"
-
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -30,6 +28,12 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     inline auto XMakeProjectParser::targetsNames() const noexcept -> const QStringList & {
         return m_targets_names;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeProjectParser::options() const noexcept -> const BuildOptionsList & {
+        return m_parser_result.options;
     }
 
     ////////////////////////////////////////////////////

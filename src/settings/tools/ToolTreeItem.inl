@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "ToolTreeItem.hpp"
-
 #include <utils/treemodel.h>
 
 namespace XMakeProjectManager::Internal {

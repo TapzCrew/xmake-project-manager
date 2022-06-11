@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "XMakeBuildConfiguration.hpp"
-
 namespace XMakeProjectManager::Internal {
     static inline const QHash<QString, XMakeBuildType> BUILD_TYPES_BY_NAME = {
         { QString { "debug" }, XMakeBuildType::Debug },

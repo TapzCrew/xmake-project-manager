@@ -18,6 +18,7 @@
 
 #include <project/projecttree/XMakeProjectNodes.hpp>
 
+#include <xmakeinfoparser/XMakeBuildOptionsParser.hpp>
 #include <xmakeinfoparser/XMakeInfoParser.hpp>
 
 #include <utils/environment.h>
@@ -57,6 +58,8 @@ namespace XMakeProjectManager::Internal {
 
         const TargetsList &targets() const noexcept;
         const QStringList &targetsNames() const noexcept;
+
+        const BuildOptionsList &options() const noexcept;
 
         void setEnvironment(const Utils::Environment &environment);
 

@@ -64,8 +64,6 @@ namespace XMakeProjectManager::Internal {
         Utils::FileSystemWatcher m_intro_watcher;
 
         QtSupport::CppKitInfo m_kit_info;
-
-        BuildOptionsList m_build_options;
     };
 } // namespace XMakeProjectManager::Internal
 

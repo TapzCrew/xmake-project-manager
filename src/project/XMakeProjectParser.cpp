@@ -127,7 +127,7 @@ namespace XMakeProjectManager::Internal {
         m_pending_commands.enqueue(
             std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
 
-        return m_process.run(cmd, m_env, m_project_name, true);
+        return m_process.run(cmd, m_env, m_project_name, false);
     }
 
     ////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProjectParser::wipe(const Utils::FilePath &source_path,
                                   const Utils::FilePath &build_path,
                                   const QStringList &args) -> bool {
-        return configure(source_path, build_path, args, true);
+        return configure(source_path, build_path, args, false);
     }
 
     ////////////////////////////////////////////////////

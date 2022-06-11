@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "XMakeBuildSystem.hpp"
-
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -14,7 +12,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     inline auto XMakeBuildSystem::buildOptionsList() const noexcept -> const BuildOptionsList & {
-        return m_build_options;
+        return m_parser.options();
     }
 
     ////////////////////////////////////////////////////
@@ -27,6 +25,12 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     inline auto XMakeBuildSystem::targetList() const noexcept -> const QStringList & {
         return m_parser.targetsNames();
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline auto XMakeBuildSystem::setXMakeConfigArgs(QStringList args) -> void {
+        m_pending_config_args = args;
     }
 
     ////////////////////////////////////////////////////

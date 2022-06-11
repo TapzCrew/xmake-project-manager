@@ -4,6 +4,8 @@
 
 #include "XMakeBuildConfiguration.hpp"
 
+#include "buildoptions/XMakeBuildSettingsWidget.hpp"
+
 #include <XMakeProjectConstant.hpp>
 
 #include <project/XMakeBuildStep.hpp>
@@ -133,7 +135,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildConfiguration::createConfigWidget() -> ProjectExplorer::NamedWidget * {
-        return nullptr;
+        return new XMakeBuildSettingsWidget { this };
     }
 
     ////////////////////////////////////////////////////

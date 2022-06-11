@@ -9,19 +9,6 @@
 #include <QJsonDocument>
 
 namespace XMakeProjectManager::Internal {
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto extractArray(const QJsonArray &array) -> QStringList {
-        auto output = QStringList {};
-        output.reserve(std::size(array));
-
-        std::transform(std::cbegin(array),
-                       std::cend(array),
-                       std::back_inserter(output),
-                       [](const auto &v) { return v.toString(); });
-
-        return output;
-    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////

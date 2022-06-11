@@ -60,9 +60,9 @@ namespace XMakeProjectManager::Internal {
     auto XMakeBuildSystem::configure() -> bool {
         LEAVE_IF_BUSY();
 
+        LOCK();
         qCDebug(xmake_build_system_log) << "Configure";
 
-        LOCK();
         if (m_parser.configure(projectDirectory(),
                                buildConfiguration()->buildDirectory(),
                                configArgs(false))) {
@@ -78,12 +78,12 @@ namespace XMakeProjectManager::Internal {
     auto XMakeBuildSystem::wipe() -> bool {
         LEAVE_IF_BUSY();
 
+        LOCK();
         qCDebug(xmake_build_system_log) << "Wipe";
 
-        LOCK();
         if (m_parser.configure(projectDirectory(),
                                buildConfiguration()->buildDirectory(),
-                               configArgs(false),
+                               configArgs(true),
                                true)) {
             return true;
         }
@@ -166,7 +166,9 @@ namespace XMakeProjectManager::Internal {
 
         qCDebug(xmake_build_system_log) << "Starting parser";
 
-        if (m_parser.parse(projectDirectory(), buildConfiguration()->buildDirectory())) return true;
+        const auto result =
+            m_parser.parse(projectDirectory(), buildConfiguration()->buildDirectory());
+        if (result) return true;
 
         UNLOCK(false);
 
@@ -222,10 +224,6 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildSystem::configArgs(bool is_setup) -> QStringList {
-        const auto &params = xmakeBuildConfiguration()->parameters();
-
-        if (!is_setup) return m_pending_config_args + xmakeBuildConfiguration()->xmakeConfigArgs();
-
         return QStringList {} + m_pending_config_args +
                xmakeBuildConfiguration()->xmakeConfigArgs();
     }

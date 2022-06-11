@@ -42,6 +42,18 @@ namespace XMakeProjectManager::Internal {
     template<typename T>
     Utils::optional<T> get(const QJsonObject &obj, const QString &name);
 
+    inline auto extractArray(const QJsonArray &array) -> QStringList {
+        auto output = QStringList {};
+        output.reserve(std::size(array));
+
+        std::transform(std::cbegin(array),
+                       std::cend(array),
+                       std::back_inserter(output),
+                       [](const auto &v) { return v.toString(); });
+
+        return output;
+    }
+
     template<>
     inline Utils::optional<QJsonArray> get<QJsonArray>(const QJsonObject &obj,
                                                        const QString &name) {

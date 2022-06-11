@@ -6,6 +6,7 @@
 
 #include <QStringList>
 
+#include <xmakeinfoparser/XMakeBuildOptionsParser.hpp>
 #include <xmakeinfoparser/XMakeInfo.hpp>
 #include <xmakeinfoparser/XMakeTargetParser.hpp>
 
@@ -21,6 +22,8 @@ namespace XMakeProjectManager::Internal {
 
     namespace XMakeInfoParser {
         struct Result {
+            BuildOptionsList options;
+
             TargetsList targets;
 
             std::vector<Utils::FilePath> build_system_files;

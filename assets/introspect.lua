@@ -169,6 +169,24 @@ function main ()
 
     output.targets = targets
 
+    local options = {}
+    for optionname, option in pairs(project.options()) do
+        local value = option:value()
+        local values = option:get("values")
+        if value == true or value == false then
+            values = {"true", "false"}
+        end
+
+        table.insert(options, {
+          name = option:name(),
+          value = format("%s", value),
+          description = option:get("description"),
+          values = values
+        })
+    end
+
+    output.options = options
+
     local project_files = {}
     for _, project_file in ipairs((project:allfiles())) do
         project_file = project_file:gsub("%\\", "/")
