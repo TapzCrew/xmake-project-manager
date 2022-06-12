@@ -11,6 +11,7 @@
 #include "qregularexpression.h"
 #include "ui_XMakeBuildSettingsWidget.h"
 #include "utils/progressindicator.h"
+#include "xmakeinfoparser/XMakeBuildOptionsParser.hpp"
 
 #include <coreplugin/find/itemviewfind.h>
 
@@ -25,9 +26,9 @@
 
 #include <QRegularExpression>
 
-static constexpr auto REGEX = " -m [a-zA-Z]* ";
-
 namespace XMakeProjectManager::Internal {
+    static constexpr auto LOCKED_OPTIONS = std::array<std::string_view, 2> { "mode", "qt" };
+
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     XMakeBuildSettingsWidget::XMakeBuildSettingsWidget(XMakeBuildConfiguration *build_cfg)
@@ -42,15 +43,18 @@ namespace XMakeProjectManager::Internal {
         build_cfg->buildDirectoryAspect()->addToLayout(build_dir_builder);
         build_dir_builder.attachTo(ui->build_dir_widget);
 
-        auto parameters = build_cfg->parameters().toString();
+        const auto _parameters = build_cfg->parameters().toString();
+        const auto parameters  = _parameters.split(" ");
 
-        auto regex       = QRegularExpression { QString::fromLatin1(REGEX) };
-        const auto match = regex.match(parameters);
+        for (const auto &parameter : parameters) {
+            auto param_component = parameter.split("=");
 
-        parameters.erase(parameters.begin() + match.capturedStart(),
-                         parameters.begin() + match.capturedEnd());
+            m_base_options.emplace_back(std::make_unique<BuildOption>(
+                BuildOption { param_component[0].right(param_component[0].size() - 2),
+                              "",
+                              param_component[1].remove("\"") }));
+        }
 
-        ui->parameters_line_edit->setText(parameters);
         ui->options_filter_line_edit->setFiltering(true);
 
         ui->options_tree_view->sortByColumn(0, Qt::AscendingOrder);
@@ -88,8 +92,17 @@ namespace XMakeProjectManager::Internal {
 
         auto bs = static_cast<XMakeBuildSystem *>(build_cfg->buildSystem());
         connect(bs, &ProjectExplorer::BuildSystem::parsingFinished, this, [this, bs](bool success) {
-            if (success) m_options_model.setConfiguration(bs->buildOptionsList());
-            else
+            if (success) {
+                const auto &_option_list = bs->buildOptionsList();
+
+                auto option_list = BuildOptionsList {};
+                option_list.reserve(std::size(m_base_options) + std::size(_option_list));
+                for (const auto &option : m_base_options)
+                    option_list.emplace_back(std::make_unique<BuildOption>(*option));
+                for (const auto &option : _option_list)
+                    option_list.emplace_back(std::make_unique<BuildOption>(*option));
+                m_options_model.setConfiguration(option_list);
+            } else
                 m_options_model.clear();
 
             ui->options_tree_view->expandAll();
@@ -97,6 +110,8 @@ namespace XMakeProjectManager::Internal {
             ui->options_tree_view->setEnabled(true);
             m_show_progress_timer.stop();
             m_progress_indicator.hide();
+
+            ui->wipe_button->setEnabled(true);
         });
 
         connect(bs, &XMakeBuildSystem::parsingStarted, this, [this] {
@@ -132,6 +147,7 @@ namespace XMakeProjectManager::Internal {
         connect(ui->configure_button, &QPushButton::clicked, this, [bs, this] {
             ui->options_tree_view->setEnabled(false);
             ui->configure_button->setEnabled(false);
+            ui->wipe_button->setEnabled(false);
 
             m_show_progress_timer.start();
 
@@ -141,6 +157,7 @@ namespace XMakeProjectManager::Internal {
         connect(ui->wipe_button, &QPushButton::clicked, this, [bs, this] {
             ui->options_tree_view->setEnabled(false);
             ui->configure_button->setEnabled(false);
+            ui->wipe_button->setEnabled(false);
 
             m_show_progress_timer.start();
 
@@ -148,7 +165,37 @@ namespace XMakeProjectManager::Internal {
         });
 
         connect(ui->parameters_line_edit, &QLineEdit::editingFinished, this, [this, build_cfg] {
-            build_cfg->setParameters(ui->parameters_line_edit->text());
+            build_cfg->addParameters(ui->parameters_line_edit->text());
+
+            ui->parameters_line_edit->clear();
+        });
+
+        connect(build_cfg, &XMakeBuildConfiguration::parametersChanged, this, [this, build_cfg] {
+            const auto _parameters = build_cfg->parameters().toString();
+            const auto parameters  = _parameters.split(" ");
+
+            for (const auto &parameter : parameters) {
+                const auto param_component = parameter.split("=");
+                const auto param_name  = param_component[0].right(param_component[0].size() - 2);
+                const auto param_value = QString { param_component[1] }.remove("\"");
+
+                if (std::any_of(std::begin(LOCKED_OPTIONS),
+                                std::end(LOCKED_OPTIONS),
+                                [&param_name](const auto &o) {
+                                    return o == param_name.toStdString();
+                                }))
+                    continue;
+
+                if (auto it =
+                        std::find_if(m_base_options.begin(),
+                                     m_base_options.end(),
+                                     [param_name](const auto &o) { return o->name == param_name; });
+                    it != m_base_options.end()) {
+                    (*it)->value = param_value;
+                } else
+                    m_base_options.emplace_back(
+                        std::make_unique<BuildOption>(BuildOption { param_name, "", param_value }));
+            }
         });
 
         bs->triggerParsing();

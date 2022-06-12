@@ -13,7 +13,7 @@
 #include <QLineEdit>
 
 namespace XMakeProjectManager::Internal {
-    static constexpr auto LOCKED_OPTIONS = std::array<std::string_view, 0> {};
+    static constexpr auto LOCKED_OPTIONS = std::array<std::string_view, 2> { "mode", "qt" };
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////

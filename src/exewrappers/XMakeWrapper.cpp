@@ -100,8 +100,8 @@ namespace XMakeProjectManager::Internal {
                                  const QStringList &options,
                                  bool wipe) const -> Command {
         QStringList _options = options;
-        if (m_auto_accept_requests) _options.emplace_back("--yes");
         if (wipe) _options.emplace_back("-c");
+        if (m_auto_accept_requests) _options.emplace_back("--yes");
         return { m_exe,
                  Utils::FilePath::fromString(QDir::rootPath()), // source_directory,
                  options_cat("f",

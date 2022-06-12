@@ -32,13 +32,13 @@ namespace XMakeProjectManager::Internal {
         setInitializer([this, target](const auto &info) {
             m_build_type = xmakeBuildType(info.typeName);
 
-            m_parameters = QString { "-v -m %1" }.arg(info.typeName);
+            m_parameters = QString { "--mode=%1" }.arg(info.typeName);
 
             auto *kit     = target->kit();
             auto kit_info = QtSupport::CppKitInfo { kit };
             if (kit_info.qtVersion && !kit_info.qtVersion->prefix().isEmpty()) {
                 m_parameters +=
-                    QString { " --qt=\"%1\"" }.arg(kit_info.qtVersion->prefix().toString());
+                    QString { " --qt=\"%1\"" }.arg(kit_info.qtVersion->prefix().nativePath());
                 qDebug() << m_parameters;
             }
 

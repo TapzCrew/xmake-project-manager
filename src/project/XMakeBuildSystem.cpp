@@ -81,10 +81,9 @@ namespace XMakeProjectManager::Internal {
         LOCK();
         qCDebug(xmake_build_system_log) << "Wipe";
 
-        if (m_parser.configure(projectDirectory(),
-                               buildConfiguration()->buildDirectory(),
-                               configArgs(true),
-                               true)) {
+        if (m_parser.wipe(projectDirectory(),
+                          buildConfiguration()->buildDirectory(),
+                          configArgs(true))) {
             return true;
         }
 

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "BuildOptionsModel.hpp"
+#include "xmakeinfoparser/XMakeBuildOptionsParser.hpp"
 
 #include <projectexplorer/namedwidget.h>
 
@@ -32,5 +33,7 @@ namespace XMakeProjectManager::Internal {
         QTimer m_show_progress_timer;
 
         BuildOptionsModel m_options_model;
+
+        BuildOptionsList m_base_options;
     };
 } // namespace XMakeProjectManager::Internal

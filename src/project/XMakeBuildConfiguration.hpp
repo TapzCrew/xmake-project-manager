@@ -54,11 +54,11 @@ namespace XMakeProjectManager::Internal {
 
         QStringView parameters() const noexcept;
 
-        void setParameters(QString params);
+        void setParameters(const QString &params);
+        void addParameters(const QString &params);
 
       Q_SIGNALS:
         void parametersChanged();
-        void environmentChanged();
 
       private:
         QVariantMap toMap() const override;
