@@ -144,7 +144,7 @@ namespace XMakeProjectManager::Internal {
             bs->configure();
         });
 
-        connect(ui->configure_button, &QPushButton::clicked, this, [bs, this] {
+        connect(ui->wipe_button, &QPushButton::clicked, this, [bs, this] {
             ui->options_tree_view->setEnabled(false);
             ui->configure_button->setEnabled(false);
 
