@@ -32,7 +32,5 @@ namespace XMakeProjectManager::Internal {
         QTimer m_show_progress_timer;
 
         BuildOptionsModel m_options_model;
-
-        QString m_mode_parameter_backup;
     };
 } // namespace XMakeProjectManager::Internal
