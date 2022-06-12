@@ -47,6 +47,9 @@ namespace XMakeProjectManager::Internal {
         auto regex       = QRegularExpression { QString::fromLatin1(REGEX) };
         const auto match = regex.match(parameters);
 
+        m_mode_parameter_backup =
+            QString { parameters.begin() + match.capturedStart(), match.capturedLength() };
+
         parameters.erase(parameters.begin() + match.capturedStart(),
                          parameters.begin() + match.capturedEnd());
 
@@ -106,7 +109,10 @@ namespace XMakeProjectManager::Internal {
             }
         });
 
-        connect(&m_options_model, &BuildOptionsModel::dataChanged, this, [bs, this] {
+        connect(&m_options_model, &BuildOptionsModel::dataChanged, this, [this, bs] {
+            auto args = m_options_model.changesAsXMakeArgs();
+            args.push_front(m_mode_parameter_backup);
+
             bs->setXMakeConfigArgs(m_options_model.changesAsXMakeArgs());
         });
 
