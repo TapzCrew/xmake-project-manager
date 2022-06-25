@@ -3,6 +3,8 @@
 // found in the top-level of this distribution
 
 #include "XMakeBuildSystem.hpp"
+#include "projectexplorer/projectexplorerconstants.h"
+#include "qmljs/qmljsdialect.h"
 
 #include <project/XMakeBuildConfiguration.hpp>
 
@@ -18,6 +20,8 @@
 
 #include <qtsupport/qtcppkitinfo.h>
 #include <qtsupport/qtkitinformation.h>
+
+#include <qmljs/qmljsmodelmanagerinterface.h>
 
 #define LEAVE_IF_BUSY()                                  \
     {                                                    \
@@ -205,6 +209,8 @@ namespace XMakeProjectManager::Internal {
                                               QtSupport::CppKitInfo { kit() },
                                               buildConfiguration()->environment(),
                                               m_parser.buildProjectParts(kit_info) });
+
+            updateQMLCodeModel();
         }
 
         setApplicationTargets(m_parser.appTargets());
@@ -225,5 +231,28 @@ namespace XMakeProjectManager::Internal {
     auto XMakeBuildSystem::configArgs(bool is_setup) -> QStringList {
         return QStringList {} + m_pending_config_args +
                xmakeBuildConfiguration()->xmakeConfigArgs();
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    auto XMakeBuildSystem::updateQMLCodeModel() -> void {
+        auto model_manager = QmlJS::ModelManagerInterface::instance();
+        if (!model_manager) return;
+
+        auto project = this->project();
+
+        auto project_info = model_manager->defaultProjectInfoForProject(project);
+        project_info.importPaths.clear();
+
+        for (const auto &import : m_parser.qmlImportPaths()) {
+            qCDebug(xmake_build_system_log) << "QML IMPORT PATH: " << import;
+            project_info.importPaths.maybeInsert(Utils::FilePath::fromString(import),
+                                                 QmlJS::Dialect::Qml);
+        }
+
+        project->setProjectLanguage(ProjectExplorer::Constants::QMLJS_LANGUAGE_ID,
+                                    !project_info.sourceFiles.empty());
+
+        model_manager->updateProjectInfo(project_info, project);
     }
 } // namespace XMakeProjectManager::Internal

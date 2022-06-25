@@ -59,6 +59,8 @@ namespace XMakeProjectManager::Internal {
         const TargetsList &targets() const noexcept;
         const QStringList &targetsNames() const noexcept;
 
+        const QStringList &qmlImportPaths() const noexcept;
+
         const BuildOptionsList &options() const noexcept;
 
         void setEnvironment(const Utils::Environment &environment);

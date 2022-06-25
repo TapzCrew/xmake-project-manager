@@ -28,6 +28,8 @@ namespace XMakeProjectManager::Internal {
 
             std::vector<Utils::FilePath> build_system_files;
 
+            QStringList qml_import_paths;
+
             Utils::optional<XMakeInfo> xmake_info;
         };
 

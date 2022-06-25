@@ -53,6 +53,8 @@ namespace XMakeProjectManager::Internal {
 
         QStringList configArgs(bool is_setup);
 
+        void updateQMLCodeModel();
+
         ProjectExplorer::BuildSystem::ParseGuard m_parse_guard;
 
         XMakeProjectParser m_parser;

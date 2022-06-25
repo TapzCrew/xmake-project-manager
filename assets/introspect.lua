@@ -29,6 +29,7 @@ function main ()
 
     -- add targets data
     local targets = {}
+    local qml_import_path = {}
     for name, target in pairs((project:targets())) do
         local source_batches = {}
 
@@ -153,6 +154,13 @@ function main ()
         end
         ::continue3::
 
+        if use_qt then
+            for _, p in ipairs(target:get("runenv")["QML2_IMPORT_PATH"]) do
+                p = path.absolute(p, project:directory()):gsub("%\\", "/")
+                table.append(qml_import_path, p)
+            end
+        end
+
         table.insert(targets, { name = name,
                                 kind = target:targetkind(),
                                 defined_in = defined_in,
@@ -192,6 +200,7 @@ function main ()
         project_file = project_file:gsub("%\\", "/")
         table.insert(project_files, project_file)
     end
+    output.qml_import_path = qml_import_path
     output.project_files = project_files
 
 

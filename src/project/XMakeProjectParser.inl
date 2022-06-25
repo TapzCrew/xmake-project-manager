@@ -32,6 +32,12 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    inline auto XMakeProjectParser::qmlImportPaths() const noexcept -> const QStringList & {
+        return m_parser_result.qml_import_paths;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     inline auto XMakeProjectParser::options() const noexcept -> const BuildOptionsList & {
         return m_parser_result.options;
     }

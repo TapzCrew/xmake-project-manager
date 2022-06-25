@@ -46,6 +46,7 @@ add_qtc_plugin(
         QtCreator::Core
         QtCreator::ExtensionSystem
         QtCreator::Utils
+        QtCreator::QmlJS
     SOURCES
         ${source_files}
 
