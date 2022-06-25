@@ -3,8 +3,6 @@
 // found in the top-level of this distribution
 
 #include "XMakeBuildSystem.hpp"
-#include "projectexplorer/projectexplorerconstants.h"
-#include "qmljs/qmljsdialect.h"
 
 #include <project/XMakeBuildConfiguration.hpp>
 
@@ -15,12 +13,14 @@
 #include <utils/qtcassert.h>
 
 #include <projectexplorer/buildconfiguration.h>
+#include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/target.h>
 #include <projectexplorer/taskhub.h>
 
 #include <qtsupport/qtcppkitinfo.h>
 #include <qtsupport/qtkitinformation.h>
 
+#include <qmljs/qmljsdialect.h>
 #include <qmljs/qmljsmodelmanagerinterface.h>
 
 #define LEAVE_IF_BUSY()                                  \
