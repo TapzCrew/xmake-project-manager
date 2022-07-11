@@ -6,6 +6,9 @@
 
 #include <XMakeProjectConstant.hpp>
 
+#include <qtsupport/qtcppkitinfo.h>
+#include <qtsupport/qtkitinformation.h>
+
 #include <projectexplorer/buildsystem.h>
 #include <projectexplorer/desktoprunconfiguration.h>
 #include <projectexplorer/environmentaspect.h>
@@ -52,6 +55,14 @@ namespace XMakeProjectManager::Internal {
             ProjectExplorer::BuildTargetInfo b_ti = buildTargetInfo();
             if (b_ti.runEnvModifier) b_ti.runEnvModifier(env, lib_aspect->value());
         });
+
+        auto *kit     = target->kit();
+        auto kit_info = QtSupport::CppKitInfo { kit };
+        if (kit_info.qtVersion && !kit_info.qtVersion->prefix().isEmpty())
+            env_aspect->addModifier(
+                [kit_info = QtSupport::CppKitInfo { kit }](Utils::Environment &env) {
+                    env.appendOrSetPath(kit_info.qtVersion->binPath());
+                });
 
         setUpdater([this] { updateTargetInformation(); });
 
