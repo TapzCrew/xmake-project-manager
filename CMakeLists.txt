@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(XMakeProjectManager VERSION 7.0.0
+project(XMakeProjectManager VERSION 8.0.0
                             DESCRIPTION "QtCreator XMake project support"
                             LANGUAGES CXX)
 
