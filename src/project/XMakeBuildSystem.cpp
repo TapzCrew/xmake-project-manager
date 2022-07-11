@@ -104,6 +104,13 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    auto XMakeBuildSystem::makeInstallCommand([[maybe_unused]] const Utils::FilePath &install_root)
+        const -> ProjectExplorer::MakeInstallCommand {
+        return {};
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto XMakeBuildSystem::init() -> void {
         qCDebug(xmake_build_system_log) << "Init";
 

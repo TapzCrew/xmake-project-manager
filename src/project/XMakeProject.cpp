@@ -61,14 +61,6 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProject::deploymentKnowledge() const -> ProjectExplorer::DeploymentKnowledge {
         return ProjectExplorer::DeploymentKnowledge::Bad;
     }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto XMakeProject::makeInstallCommand([[maybe_unused]] const ProjectExplorer::Target *target,
-                                          [[maybe_unused]] const QString &install_root)
-        -> ProjectExplorer::MakeInstallCommand {
-        return {};
-    }
 } // namespace XMakeProjectManager::Internal
 
 #include "XMakeProject.moc"

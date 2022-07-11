@@ -46,6 +46,7 @@ namespace XMakeProjectManager::Internal {
       private:
         void handleProcessFinished(int code, QProcess::ExitStatus status);
         void handleProcessError(QProcess::ProcessError error);
+        void handleProcessDone();
         void checkForCancelled();
         void setupProcess(const Command &command, const Utils::Environment &env, bool capture_stdo);
 

@@ -12,6 +12,7 @@
 #include <coreplugin/coreconstants.h>
 
 #include <projectexplorer/projectexplorer.h>
+#include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projecttree.h>
 
 #include <utils/parameteraction.h>

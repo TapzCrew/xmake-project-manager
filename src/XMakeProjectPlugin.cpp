@@ -21,6 +21,7 @@
 #include <coreplugin/fileiconprovider.h>
 #include <coreplugin/icore.h>
 
+#include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectmanager.h>
 #include <projectexplorer/runconfiguration.h>
 #include <projectexplorer/runcontrol.h>

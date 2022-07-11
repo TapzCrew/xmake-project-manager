@@ -70,7 +70,7 @@ namespace XMakeProjectManager::Internal {
             kit,
             bc_name,
             build_type,
-            ProjectExplorer::BuildConfiguration::ReplaceSpaces);
+            "xmake");
     }
 
     ////////////////////////////////////////////////////

@@ -10,6 +10,7 @@
 #include <projectexplorer/desktoprunconfiguration.h>
 #include <projectexplorer/environmentaspect.h>
 #include <projectexplorer/localenvironmentaspect.h>
+#include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/runconfigurationaspects.h>
 
 #include <utils/environment.h>
@@ -22,9 +23,10 @@ namespace XMakeProjectManager::Internal {
         : ProjectExplorer::RunConfiguration { target, id } {
         auto env_aspect = addAspect<ProjectExplorer::LocalEnvironmentAspect>(target);
 
-        addAspect<ProjectExplorer::ExecutableAspect>();
-        addAspect<ProjectExplorer::ArgumentsAspect>();
-        addAspect<ProjectExplorer::WorkingDirectoryAspect>();
+        addAspect<ProjectExplorer::ExecutableAspect>(target,
+                                                     ProjectExplorer::ExecutableAspect::RunDevice);
+        addAspect<ProjectExplorer::ArgumentsAspect>(macroExpander());
+        addAspect<ProjectExplorer::WorkingDirectoryAspect>(macroExpander(), env_aspect);
         addAspect<ProjectExplorer::TerminalAspect>();
 
         auto lib_aspect = addAspect<ProjectExplorer::UseLibraryPathsAspect>();

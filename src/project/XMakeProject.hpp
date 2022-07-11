@@ -28,9 +28,6 @@ namespace XMakeProjectManager::Internal {
 
       private:
         ProjectExplorer::DeploymentKnowledge deploymentKnowledge() const override;
-        ProjectExplorer::MakeInstallCommand
-            makeInstallCommand(const ProjectExplorer::Target *target,
-                               const QString &install_root) override;
 
         mutable std::unique_ptr<XMakeProjectImporter> m_project_importer;
     };

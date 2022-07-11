@@ -2,6 +2,7 @@
 // This file is subject to the license terms in the LICENSE file
 // found in the top-level of this distribution
 
+#include "projectexplorer/task.h"
 #include <project/XMakeProcess.hpp>
 
 #include <project/parsers/XMakeBuildParser.hpp>
@@ -70,12 +71,18 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeProcess::handleProcessFinished(int code, QProcess::ExitStatus status) -> void {
+    auto XMakeProcess::handleProcessDone() -> void {
+        if (m_process->result() != Utils::ProcessResult::FinishedWithSuccess) {
+            ProjectExplorer::TaskHub::addTask(
+                ProjectExplorer::BuildSystemTask { ProjectExplorer::Task::TaskType::Error,
+                                                   m_process->exitMessage() });
+        }
+
         m_cancel_timer.stop();
 
         m_stdo = m_process->readAllStandardOutput();
 
-        if (status == QProcess::NormalExit) {
+        if (m_process->exitStatus() == QProcess::NormalExit) {
             m_future.setProgressValue(1);
             m_future.reportFinished();
         } else {
@@ -87,45 +94,7 @@ namespace XMakeProjectManager::Internal {
 
         Core::MessageManager::writeSilently(elapsed_time);
 
-        Q_EMIT finished(code, status);
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto XMakeProcess::handleProcessError(QProcess::ProcessError error) -> void {
-        auto message     = QString {};
-        auto command_str = m_current_command.toUserOutput();
-
-        switch (error) {
-            case QProcess::ProcessError::FailedToStart:
-                message = tr("The process failed to start. ") +
-                          tr("Either the invoked program \"%1\" is missing, or you may have "
-                             "insufficient permissions to invoke the program.")
-                              .arg(m_current_command.executable().toUserOutput());
-                break;
-            case QProcess::ProcessError::Crashed:
-                message = tr("The process was ended forcefully.");
-                break;
-            case QProcess::ProcessError::Timedout: message = tr("Process timed out."); break;
-            case QProcess::ProcessError::WriteError:
-                message = tr(
-                    "An error occurred when attempting to write to the process. For example, the "
-                    "process may not be running, or it may have closed its input channel.");
-                break;
-            case QProcess::ProcessError::ReadError:
-                message = tr("An error occurred when attempting to read from the process. For "
-                             "example, the process may not be running.");
-                break;
-            case QProcess::ProcessError::UnknownError:
-                message = tr("An unknown error in the process occurred.");
-                break;
-        }
-
-        ProjectExplorer::TaskHub::addTask(
-            ProjectExplorer::BuildSystemTask { ProjectExplorer::Task::TaskType::Error,
-                                               QString { "%1\n%2" }.arg(message, command_str) });
-
-        handleProcessFinished(-1, QProcess::CrashExit);
+        Q_EMIT finished(m_process->exitCode(), m_process->exitStatus());
     }
 
     ////////////////////////////////////////////////////
@@ -143,18 +112,8 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProcess::setupProcess(const Command &command,
                                     const Utils::Environment &env,
                                     bool capture_stdo) -> void {
-        if (m_process) disconnect(m_process.get());
-
         m_process = std::make_unique<Utils::QtcProcess>();
-
-        connect(m_process.get(), &Utils::QtcProcess::finished, this, [this] {
-            handleProcessFinished(m_process->exitCode(), m_process->exitStatus());
-        });
-
-        connect(m_process.get(),
-                &Utils::QtcProcess::errorOccurred,
-                this,
-                &XMakeProcess::handleProcessError);
+        connect(m_process.get(), &Utils::QtcProcess::done, this, &XMakeProcess::handleProcessDone);
 
         if (!capture_stdo) {
             connect(m_process.get(),
@@ -203,9 +162,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProcess::processStandardOutput() -> void {
-        QTC_ASSERT(m_process, return );
-
-        auto data = m_process->readAllStandardOutput();
+        const auto data = m_process->readAllStandardOutput();
 
         Core::MessageManager::writeSilently(QString::fromLocal8Bit(data));
 
@@ -215,9 +172,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeProcess::processStandardError() -> void {
-        QTC_ASSERT(m_process, return );
-
-        auto data = m_process->readAllStandardError();
+        const auto data = m_process->readAllStandardError();
 
         Core::MessageManager::writeSilently(QString::fromLocal8Bit(data));
     }

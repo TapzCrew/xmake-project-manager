@@ -40,6 +40,9 @@ namespace XMakeProjectManager::Internal {
 
         const XMakeProjectParser &parser() const noexcept;
 
+        ProjectExplorer::MakeInstallCommand
+            makeInstallCommand(const Utils::FilePath &install_root) const override;
+
       private:
         void init();
 

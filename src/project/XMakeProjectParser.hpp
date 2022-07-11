@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <QFuture>
 #include <QObject>
 #include <QQueue>
 
