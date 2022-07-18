@@ -31,99 +31,6 @@ function main ()
     local targets = {}
     local qml_import_path = {}
     for name, target in pairs((project:targets())) do
-        local source_batches = {}
-
-        local target_sourcebatches = {}
-        for _, batch in pairs(target:sourcebatches()) do
-            table.insert(target_sourcebatches, batch)
-        end
-        table.sort(target_sourcebatches, function (first, second) return first.rulename < second.rulename end)
-
-        local last_cxx_arguments = {}
-        for name, batch in ipairs(target_sourcebatches) do
-            local source_files = {}
-            for _, file in ipairs(batch.sourcefiles) do
-                file = path.absolute(file, project:directory()):gsub("%\\", "/")
-                table.insert(source_files, file)
-            end
-
-            local arguments = {}
-            if string_starts(batch.rulename, "c") then
-                for _, file in ipairs(batch.sourcefiles) do
-                        if string_ends(file, ".mpp") or string_ends(file, ".ixx") or string_ends(file, ".cppm") or string_ends(file, ".mxx") then -- can't do better for now with C++20 modules
-                           arguments = last_cxx_arguments
-                           if compiler.has_flags("cxx", "-fmodules-ts") then
-                                   table.insert(arguments, "-fmodules-ts")
-                           elseif compiler.has_flags("cxx", "-fmodules") then
-                                  table.insert(arguments, "-fmodules-ts")
-                           elseif compiler.has_flags("cxx", "/experimental:module") then
-                                   table.insert(arguments, "/experimental:module")
-                           end
-                           break
-                        end
-
-                        local args = compiler.compflags(file, {target = target})
-
-                        local ignore_next_arg = false
-
-                        for i, argument in ipairs(args) do
-                                if ignore_next_arg then
-                                        ignore_next_arg = false
-                                        goto continue2
-                                end
-
-                                if string_starts(argument, "-I") then
-                                        local p = argument:sub(3, argument:len())
-                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                        table.insert(arguments, format("-I%s", p))
-                                elseif string_starts(argument, "-external:I") then
-                                        local p = argument:sub(12, argument:len())
-                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                        table.insert(arguments, format("-external:I%s", p))
-                                elseif(string_starts(argument, "-isystem")) then
-                                        table.insert(arguments, argument .. " ".. args[i + 1])
-                                        ignore_next_arg = true
-                                elseif string_starts(argument, "/I") then
-                                        local p = argument:sub(3, argument:len())
-                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                        table.insert(arguments, format("/I%s", p))
-                                elseif string_starts(argument, "/external:I") then
-                                        local p = argument:sub(12, argument:len())
-                                        p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                        table.insert(arguments, format("/external:I%s", p))
-                                elseif(string_starts(argument, "/isystem")) then
-                                        table.insert(arguments, argument .. " ".. args[i + 1])
-                                        ignore_next_arg = true
-                                else
-                                        table.insert(arguments, argument)
-                                end
-
-                                ::continue2::
-                         end
-
-                         if batch.sourcekind and batch.sourcekind == "cxx" then
-                                last_cxx_arguments = arguments
-                         end
-                         break
-                end
-            end
-
-            kind = ""
-            if batch.rulename == "c++.build.modules" then
-                kind = "cxxmodule"
-            elseif batch.sourcekind then
-                kind = batch.sourcekind
-            else
-                kind = "unknown"
-            end
-
-            table.insert(source_batches, { kind = kind, source_files = source_files, arguments = arguments, languages = target:get("languages") })
-        end
-
         local header_files = {}
 
         for _, file in ipairs(target:headerfiles()) do
@@ -132,6 +39,98 @@ function main ()
         end
 
         table.sort(header_files)
+
+        local source_batches = {}
+
+        local target_sourcebatches = {}
+        for _, batch in pairs(target:sourcebatches()) do
+            table.insert(target_sourcebatches, batch)
+        end
+
+        table.sort(target_sourcebatches, function (first, second) return first.rulename < second.rulename end)
+
+        local last_cxx_arguments = {}
+        for name, batch in ipairs(target_sourcebatches) do
+            if batch.rulename == "qt.moc" or batch.rulename == "qt.qmltyperegistrar" then
+                goto continue4
+            end
+
+            local source_files = {}
+
+            for _, file in ipairs(batch.sourcefiles) do
+                file = path.absolute(file, project:directory()):gsub("%\\", "/")
+                table.insert(source_files, file)
+            end
+
+            local arguments = {}
+            for _, file in ipairs(batch.sourcefiles) do
+                if string_starts(batch.rulename, "c++.build") or string_starts(batch.rulename, "c.build") then
+                    local args = compiler.compflags(file, {target = target})
+
+                    local ignore_next_arg = false
+
+                    for i, argument in ipairs(args) do
+                            if ignore_next_arg then
+                                    ignore_next_arg = false
+                                    goto continue2
+                            end
+
+                            if string_starts(argument, "-I") then
+                                    local p = argument:sub(3, argument:len())
+                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                    table.insert(arguments, format("-I%s", p))
+                            elseif string_starts(argument, "-external:I") then
+                                    local p = argument:sub(12, argument:len())
+                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                    table.insert(arguments, format("-external:I%s", p))
+                            elseif(string_starts(argument, "-isystem")) then
+                                    table.insert(arguments, argument .. " ".. args[i + 1])
+                                    ignore_next_arg = true
+                            elseif string_starts(argument, "/I") then
+                                    local p = argument:sub(3, argument:len())
+                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                    table.insert(arguments, format("/I%s", p))
+                            elseif string_starts(argument, "/external:I") then
+                                    local p = argument:sub(12, argument:len())
+                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
+
+                                    table.insert(arguments, format("/external:I%s", p))
+                            elseif(string_starts(argument, "/isystem")) then
+                                    table.insert(arguments, argument .. " ".. args[i + 1])
+                                    ignore_next_arg = true
+                            else
+                                    table.insert(arguments, argument)
+                            end
+
+                            ::continue2::
+                     end
+
+                     if batch.sourcekind and (batch.sourcekind == "cxx" or batch.sourcekind == "cc") then
+                            last_cxx_arguments = arguments
+                     end
+
+                     source_files = table.join(source_files, header_files)
+                end
+
+            end
+
+
+            local kind = ""
+            if batch.sourcekind then
+                kind = batch.sourcekind
+            else
+                kind = "unknown"
+            end
+
+            table.insert(source_batches, { kind = kind, source_files = source_files, arguments = arguments})
+
+            ::continue4::
+        end
+
+
 
         local target_file = target:targetfile()
 

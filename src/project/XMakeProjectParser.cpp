@@ -3,6 +3,9 @@
 // found in the top-level of this distribution
 
 #include "XMakeProjectParser.hpp"
+#include "projectexplorer/headerpath.h"
+#include "projectexplorer/rawprojectpart.h"
+#include "utils/filepath.h"
 
 #include <algorithm>
 
@@ -13,7 +16,10 @@
 
 #include <projectexplorer/projectexplorer.h>
 
+#include <cppeditor/cppeditorconstants.h>
+
 #include <utils/fileinprojectfinder.h>
+#include <utils/mimeutils.h>
 #include <utils/runextensions.h>
 
 #include <qtsupport/qtcppkitinfo.h>
@@ -33,6 +39,24 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    auto toAbsolutePath(const Utils::FilePath &ref_path, const QStringList &path_list)
+        -> QStringList {
+        auto output = QStringList {};
+        output.reserve(std::size(path_list));
+
+        std::transform(std::cbegin(path_list),
+                       std::cend(path_list),
+                       std::back_inserter(output),
+                       [ref_path](const QString &path) {
+                           if (Utils::FileUtils::isAbsolutePath(path)) return path;
+                           return ref_path.pathAppended(path).toString();
+                       });
+
+        return output;
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto extractValueIfMatches(const QString &arg, const QStringList &candidates)
         -> Utils::optional<QString> {
         for (const auto &flag : candidates)
@@ -44,10 +68,10 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto extractInclude(const QString &arg) -> Utils::optional<ProjectExplorer::HeaderPath> {
-        auto path = extractValueIfMatches(arg, { "-I", "/I", "-imsvc ", "/imsvc " });
+        auto path = extractValueIfMatches(arg, { "-I", "/I", "-imsvc", "/imsvc" });
         if (path) return ProjectExplorer::HeaderPath::makeUser(*path);
 
-        path = extractValueIfMatches(arg, { "-isystem ", "/external:I", "-external:I" });
+        path = extractValueIfMatches(arg, { "-isystem", "/external:I", "-external:I" });
         if (path) return ProjectExplorer::HeaderPath::makeSystem(*path);
 
         return Utils::nullopt;
@@ -74,12 +98,8 @@ namespace XMakeProjectManager::Internal {
 
         for (const QString &arg : args) {
             auto inc = extractInclude(arg);
-            if (inc) {
-                auto path = Utils::FilePath::fromString(inc->path);
-                if (!path.isAbsolutePath()) path = src_dir.resolvePath(path);
-
-                splited.include_paths << ProjectExplorer::HeaderPath { path.path(), inc->type };
-            } else {
+            if (inc) splited.include_paths << *inc;
+            else {
                 auto macro = extractMacro(arg);
                 if (macro) splited.macros << *macro;
                 else
@@ -165,6 +185,8 @@ namespace XMakeProjectManager::Internal {
         return m_process.run(cmd, m_env, m_project_name, true);
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto XMakeProjectParser::appTargets() const -> QList<ProjectExplorer::BuildTargetInfo> {
         auto apps = QList<ProjectExplorer::BuildTargetInfo> {};
 
@@ -188,17 +210,66 @@ namespace XMakeProjectManager::Internal {
         return apps;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto XMakeProjectParser::buildProjectParts(const QtSupport::CppKitInfo &kit_info) const
         -> ProjectExplorer::RawProjectParts {
         auto parts = ProjectExplorer::RawProjectParts {};
 
+        auto qt_version     = Utils::QtMajorVersion::Unknown;
+        auto qt_header_path = Utils::FilePath {};
+
+        const auto private_str = QString { "private" };
+
+        if (kit_info.qtVersion) {
+            qt_header_path = kit_info.qtVersion->headerPath();
+
+            if (kit_info.qtVersion->qtVersion().majorVersion == 6)
+                qt_version = Utils::QtMajorVersion::Qt6;
+            else if (kit_info.qtVersion->qtVersion().majorVersion == 5)
+                qt_version = Utils::QtMajorVersion::Qt5;
+            else if (kit_info.qtVersion->qtVersion().majorVersion == 4)
+                qt_version = Utils::QtMajorVersion::Qt4;
+        }
+
         for (const auto &target : m_parser_result.targets) {
-            std::transform(std::cbegin(target.sources),
-                           std::cend(target.sources),
-                           std::back_inserter(parts),
-                           [&target, &kit_info, this](const auto &source_group) {
-                               return buildProjectPart(target, source_group, kit_info);
-                           });
+            qCDebug(xmake_project_parser_log)
+                << "---------------- TARGET " << target.name << " -------------------";
+
+            auto id = 0;
+            parts.reserve(std::size(parts) + std::size(target.sources));
+            for (const auto &source_group : target.sources) {
+                if (source_group.kind != "cxx" && source_group.kind != "cc" &&
+                    source_group.kind != "cuda" && source_group.kind != "headers")
+                    continue;
+
+                parts.emplace_back(buildProjectPart(target, source_group, kit_info, id++));
+            }
+
+            if (target.use_qt) {
+                auto include_paths = ProjectExplorer::HeaderPaths {};
+
+                for (const auto &framework : target.frameworks) {
+                    if (framework.startsWith("Qt") && framework.endsWith(private_str)) {
+                        auto name = framework.left(framework.size() - private_str.size());
+
+                        include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
+                            qt_header_path / name / kit_info.qtVersion->qtVersionString()));
+                        include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
+                            qt_header_path / name / kit_info.qtVersion->qtVersionString() / name));
+                    } else if (framework.startsWith("Qt"))
+                        include_paths.emplace_back(
+                            ProjectExplorer::HeaderPath::makeSystem(qt_header_path / framework));
+                }
+
+                for (auto &part : parts) {
+                    if (!target.use_qt) continue;
+
+                    part.setQtVersion(qt_version);
+
+                    part.headerPaths.append(include_paths);
+                }
+            }
         }
 
         return parts;
@@ -313,13 +384,13 @@ namespace XMakeProjectManager::Internal {
         Q_EMIT parsingCompleted(true);
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto XMakeProjectParser::buildProjectPart(const Target &target,
                                               const Target::SourceGroup &sources,
-                                              const QtSupport::CppKitInfo &kit_info) const
-        -> ProjectExplorer::RawProjectPart {
+                                              const QtSupport::CppKitInfo &kit_info,
+                                              int id) const -> ProjectExplorer::RawProjectPart {
         const auto flags = splitArgs(sources.arguments, m_src_dir);
-        qCDebug(xmake_project_parser_log)
-            << "---------------- TARGET " << target.name << " -------------------";
         for (const auto &path : flags.include_paths)
             qCDebug(xmake_project_parser_log)
                 << "INCLUDEPATH: " << path.path << ":" << static_cast<int>(path.type);
@@ -327,63 +398,37 @@ namespace XMakeProjectManager::Internal {
             qCDebug(xmake_project_parser_log) << "MACRO: " << macro.key << ":" << macro.value;
         qCDebug(xmake_project_parser_log) << "ARGUMENTS: " << flags.arguments;
         qCDebug(xmake_project_parser_log) << "SOURCES: " << sources.sources;
-        qCDebug(xmake_project_parser_log) << "SOURCES LANGUAGE: " << sources.language;
-
-        auto target_file = m_src_dir.resolvePath(target.target_file).path();
+        qCDebug(xmake_project_parser_log) << "SOURCES KIND: " << sources.kind;
 
         auto part = ProjectExplorer::RawProjectPart {};
 
+        part.setDisplayName(target.name + "@sourcegroup_" + QString::number(id) + "#language_" +
+                            sources.kind);
+        part.setBuildSystemTarget(target.name);
+        part.setProjectFileLocation(target.defined_in);
+
+        auto include_paths = flags.include_paths;
+
         auto absolute_sources = QStringList {};
-        absolute_sources.reserve(std::size(sources.sources));
+        absolute_sources.reserve(std::size(sources.sources) + std::size(target.headers));
         std::transform(std::cbegin(sources.sources),
                        std::cend(sources.sources),
                        std::back_inserter(absolute_sources),
                        [&src_dir = m_src_dir](const auto &file) {
                            return src_dir.resolvePath(file).path();
                        });
+        absolute_sources.removeDuplicates();
 
-        part.setDisplayName(target.name);
-        part.setBuildSystemTarget(Target::fullName(m_src_dir, target_file, target.defined_in));
-        part.setFiles(absolute_sources + target.headers);
-        part.setProjectFileLocation(target.defined_in);
-
-        auto include_paths = flags.include_paths;
-
-        if (target.use_qt && kit_info.qtVersion) {
-            const auto qt_header_path = kit_info.qtVersion->headerPath();
-            include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(qt_header_path));
-
-            const auto private_str = QString { "private" };
-            for (const auto &framework : target.frameworks) {
-                if (framework.startsWith("Qt") && framework.endsWith(private_str)) {
-                    auto name = framework.left(framework.size() - private_str.size());
-
-                    include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
-                        qt_header_path / name / kit_info.qtVersion->qtVersionString()));
-                    include_paths.emplace_back(ProjectExplorer::HeaderPath::makeSystem(
-                        qt_header_path / name / kit_info.qtVersion->qtVersionString() / name));
-                } else if (framework.startsWith("Qt"))
-                    include_paths.emplace_back(
-                        ProjectExplorer::HeaderPath::makeSystem(qt_header_path / framework));
-            }
-
-            auto qt_version = Utils::QtMajorVersion::Qt6;
-            if (kit_info.qtVersion->qtVersion().majorVersion == 5)
-                qt_version = Utils::QtMajorVersion::Qt5;
-            else if (kit_info.qtVersion->qtVersion().majorVersion == 4)
-                qt_version = Utils::QtMajorVersion::Qt4;
-
-            part.setQtVersion(qt_version);
-        }
-
-        part.setHeaderPaths(include_paths);
+        part.setFiles(absolute_sources, {}, [](const auto &path) {
+            return Utils::mimeTypeForFile(path).name();
+        });
         part.setMacros(flags.macros);
-        // part.setIncludedFiles(target.headers);
+        part.setHeaderPaths(include_paths);
 
         auto base_dir = Utils::FilePath::fromString(target.defined_in).absolutePath().toString();
-        if (sources.language == "cxx" || sources.language == "cxxmodule")
+        if (kit_info.cxxToolChain)
             part.setFlagsForCxx({ kit_info.cxxToolChain, flags.arguments, base_dir });
-        else if (sources.language == "cc")
+        if (kit_info.cToolChain)
             part.setFlagsForC({ kit_info.cToolChain, flags.arguments, base_dir });
 
         part.setBuildTargetType((target.kind == Target::Kind::BINARY)

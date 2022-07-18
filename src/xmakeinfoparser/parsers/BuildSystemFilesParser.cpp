@@ -30,6 +30,9 @@ namespace XMakeProjectManager::Internal {
                            return Utils::FilePath::fromString(file.toString());
                        });
 
+        std::sort(files.begin(), files.end());
+        files.erase(std::unique(files.begin(), files.end()), files.end());
+
         return files;
     }
 } // namespace XMakeProjectManager::Internal

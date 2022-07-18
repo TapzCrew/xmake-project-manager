@@ -43,6 +43,7 @@ namespace XMakeProjectManager::Internal {
 
         auto json_values = json_option["values"].toArray();
         option.values    = extractArray(json_values);
+        option.values.removeDuplicates();
 
         return _option;
     }

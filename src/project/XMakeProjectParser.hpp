@@ -89,10 +89,10 @@ namespace XMakeProjectManager::Internal {
 
         void update(const QFuture<ParserData *> &data);
 
-        ProjectExplorer::RawProjectPart
-            buildProjectPart(const Target &target,
-                             const Target::SourceGroup &sources,
-                             const QtSupport::CppKitInfo &kit_info) const;
+        ProjectExplorer::RawProjectPart buildProjectPart(const Target &target,
+                                                         const Target::SourceGroup &sources,
+                                                         const QtSupport::CppKitInfo &kit_info,
+                                                         int id) const;
 
         XMakeProcess m_process;
         bool m_configuring;

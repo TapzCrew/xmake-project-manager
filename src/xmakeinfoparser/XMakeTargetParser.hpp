@@ -16,7 +16,7 @@ namespace Utils {
 namespace XMakeProjectManager::Internal {
     struct Target {
         struct SourceGroup {
-            QString language;
+            QString kind;
             QStringList sources;
             QStringList arguments;
         };

@@ -121,9 +121,20 @@ namespace XMakeProjectManager::Internal {
             Core::FileIconProvider::overlayIcon(pixmap,
                                                 QIcon {
                                                     ProjectExplorer::Constants::FILEOVERLAY_CPP }));
+        auto c_icon = QIcon {};
+        c_icon.addPixmap(
+            Core::FileIconProvider::overlayIcon(pixmap,
+                                                QIcon {
+                                                    ProjectExplorer::Constants::FILEOVERLAY_C }));
 
         for (const auto &group : sources) {
             for (const auto &filename : group.sources) {
+                if (filename.endsWith(".inl") || filename.endsWith(".hpp") ||
+                    filename.endsWith(".h") || filename.endsWith(".mpp") ||
+                    filename.endsWith(".hxx") || filename.endsWith(".tpp") ||
+                    filename.endsWith(".ixx"))
+                    continue;
+
                 auto file = Utils::FilePath::fromString(filename).absoluteFilePath();
 
                 qCDebug(xmake_project_tree_log) << "Source node" << file.toUserOutput();
@@ -132,6 +143,7 @@ namespace XMakeProjectManager::Internal {
                                                                 ProjectExplorer::FileType::Source);
 
                 if (file.endsWith(".cpp")) source_node->setIcon(cpp_icon);
+                if (file.endsWith(".c")) source_node->setIcon(c_icon);
 
                 node->addNestedNode(std::move(source_node), {}, [](const Utils::FilePath &fn) {
                     qCDebug(xmake_project_tree_log) << "Folder node" << fn;
@@ -279,7 +291,7 @@ namespace XMakeProjectManager::Internal {
 
             auto modules_it =
                 std::find_if(std::cbegin(sources), std::cend(sources), [](const auto &batch) {
-                    return batch.language == "cxxmodule";
+                    return batch.kind == "cxxmodule";
                 });
 
             auto modules = Target::SourceGroupList {};

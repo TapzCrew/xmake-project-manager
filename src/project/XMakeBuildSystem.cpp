@@ -188,7 +188,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildSystem::updateKit(ProjectExplorer::Kit *kit) -> void {
-        QTC_ASSERT(kit, return );
+        QTC_ASSERT(kit, return);
 
         m_kit_info = QtSupport::CppKitInfo { kit };
     }

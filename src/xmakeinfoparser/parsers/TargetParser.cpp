@@ -28,6 +28,15 @@ namespace XMakeProjectManager::Internal {
                        std::back_inserter(targets),
                        loadTarget);
 
+        std::sort(targets.begin(), targets.end(), [](const auto &a, const auto &b) {
+            return a.name.compare(b.name);
+        });
+
+        targets.erase(std::unique(targets.begin(),
+                                  targets.end(),
+                                  [](const auto &a, const auto &b) { return a.name == b.name; }),
+                      targets.end());
+
         return targets;
     }
 
@@ -37,6 +46,8 @@ namespace XMakeProjectManager::Internal {
         auto json_target_obj = json_target.toObject();
 
         auto target = Target { json_target_obj["name"].toString() };
+
+        qDebug() << json_target.toString();
 
         auto kind = json_target_obj["kind"].toString();
         if (kind == "binary") target.kind = Target::Kind::BINARY;
@@ -52,20 +63,24 @@ namespace XMakeProjectManager::Internal {
 
         auto json_headers = json_target["header_files"].toArray();
         target.headers    = extractArray(json_headers);
+        target.headers.removeDuplicates();
 
         target.target_file = json_target["target_file"].toString();
 
         auto json_languages = json_target["languages"].toArray();
         target.languages    = extractArray(json_languages);
+        target.languages.removeDuplicates();
 
         auto group   = json_target["group"].toString();
         target.group = group.split('/');
 
         auto json_packages = json_target["packages"].toArray();
         target.packages    = extractArray(json_packages);
+        target.packages.removeDuplicates();
 
         auto json_frameworks = json_target["frameworks"].toArray();
         target.frameworks    = extractArray(json_frameworks);
+        target.frameworks.removeDuplicates();
 
         target.use_qt = json_target["use_qt"].toBool();
 
@@ -91,8 +106,12 @@ namespace XMakeProjectManager::Internal {
     auto TargetParser::extractSource(const QJsonValue &json_source) -> Target::SourceGroup {
         const auto source = json_source.toObject();
 
-        return { source["kind"].toString(),
-                 source["source_files"].toVariant().toStringList(),
-                 source["arguments"].toVariant().toStringList() };
+        auto output = Target::SourceGroup { source["kind"].toString(),
+                                            source["source_files"].toVariant().toStringList(),
+                                            source["arguments"].toVariant().toStringList() };
+        output.sources.removeDuplicates();
+        output.arguments.removeDuplicates();
+
+        return output;
     }
 } // namespace XMakeProjectManager::Internal
