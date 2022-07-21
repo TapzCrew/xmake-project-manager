@@ -84,7 +84,8 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    BuildOptionDelegate::BuildOptionDelegate(QObject *parent) : QStyledItemDelegate { parent } {}
+    BuildOptionDelegate::BuildOptionDelegate(QObject *parent) : QStyledItemDelegate { parent } {
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -99,11 +100,10 @@ namespace XMakeProjectManager::Internal {
         if (widget) {
             widget->setFocusPolicy(Qt::StrongFocus);
             widget->setDisabled(read_only);
+        } else
+            widget = QStyledItemDelegate::createEditor(parent, option, index);
 
-            return widget;
-        }
-
-        return QStyledItemDelegate::createEditor(parent, option, index);
+        return widget;
     }
 
     ////////////////////////////////////////////////////

@@ -92,6 +92,8 @@ namespace XMakeProjectManager::Internal {
 
         auto bs = static_cast<XMakeBuildSystem *>(build_cfg->buildSystem());
         connect(bs, &ProjectExplorer::BuildSystem::parsingFinished, this, [this, bs](bool success) {
+            m_options_model.clear();
+
             if (success) {
                 const auto &_option_list = bs->buildOptionsList();
 
@@ -102,8 +104,7 @@ namespace XMakeProjectManager::Internal {
                 for (const auto &option : _option_list)
                     option_list.emplace_back(std::make_unique<BuildOption>(*option));
                 m_options_model.setConfiguration(option_list);
-            } else
-                m_options_model.clear();
+            }
 
             ui->options_tree_view->expandAll();
             ui->options_tree_view->resizeColumnToContents(0);
@@ -203,6 +204,8 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    XMakeBuildSettingsWidget::~XMakeBuildSettingsWidget() { delete ui; }
+    XMakeBuildSettingsWidget::~XMakeBuildSettingsWidget() {
+        delete ui;
+    }
 
 } // namespace XMakeProjectManager::Internal
