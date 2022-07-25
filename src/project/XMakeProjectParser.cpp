@@ -240,7 +240,8 @@ namespace XMakeProjectManager::Internal {
             parts.reserve(std::size(parts) + std::size(target.sources));
             for (const auto &source_group : target.sources) {
                 if (source_group.kind != "cxx" && source_group.kind != "cc" &&
-                    source_group.kind != "cuda" && source_group.kind != "headers")
+                    source_group.kind != "cuda" && source_group.kind != "headers" &&
+                    source_group.kind != "cxxmodules")
                     continue;
 
                 parts.emplace_back(buildProjectPart(target, source_group, kit_info, id++));

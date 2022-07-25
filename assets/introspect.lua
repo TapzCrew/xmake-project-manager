@@ -40,6 +40,15 @@ function main ()
 
         table.sort(header_files)
 
+        local module_files = {}
+
+        for _, file in ipairs(target:modulefiles()) do
+            file = path.absolute(file, project:directory()):gsub("%\\", "/")
+            table.insert(module_files, file)
+        end
+
+        table.sort(module_files)
+
         local source_batches = {}
 
         local target_sourcebatches = {}
@@ -51,7 +60,7 @@ function main ()
 
         local last_cxx_arguments = {}
         for name, batch in ipairs(target_sourcebatches) do
-            if batch.rulename == "qt.moc" or batch.rulename == "qt.qmltyperegistrar" then
+            if batch.rulename == "c++.build.modules.builder.headerunits" or batch.rulename == "qt.moc" or batch.rulename == "qt.qmltyperegistrar" then
                 goto continue4
             end
 
@@ -64,7 +73,7 @@ function main ()
 
             local arguments = {}
             for _, file in ipairs(batch.sourcefiles) do
-                if string_starts(batch.rulename, "c++.build") or string_starts(batch.rulename, "c.build") then
+                if batch.rulename == "c++.build" or batch.rulename == "c.build" then
                     local args = compiler.compflags(file, {target = target})
 
                     local ignore_next_arg = false
@@ -130,8 +139,6 @@ function main ()
             ::continue4::
         end
 
-
-
         local target_file = target:targetfile()
 
         if target_file then
@@ -165,6 +172,7 @@ function main ()
                                 defined_in = defined_in,
                                 source_batches = source_batches,
                                 header_files = header_files,
+                                module_files = module_files,
                                 target_file = target_file,
                                 packages = target:get("packages"),
                                 frameworks = target:get("frameworks"),

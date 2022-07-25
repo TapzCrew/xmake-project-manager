@@ -65,6 +65,10 @@ namespace XMakeProjectManager::Internal {
         target.headers    = extractArray(json_headers);
         target.headers.removeDuplicates();
 
+        auto json_modules = json_target["module_files"].toArray();
+        target.modules    = extractArray(json_modules);
+        target.modules.removeDuplicates();
+
         target.target_file = json_target["target_file"].toString();
 
         auto json_languages = json_target["languages"].toArray();

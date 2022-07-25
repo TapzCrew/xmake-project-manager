@@ -172,7 +172,7 @@ namespace XMakeProjectManager::Internal {
                 qCDebug(xmake_project_tree_log) << "Module node" << filename;
                 auto module_node =
                     std::make_unique<ProjectExplorer::FileNode>(file,
-                                                                ProjectExplorer::FileType::Header);
+                                                                ProjectExplorer::FileType::Source);
                 if (file.endsWith(".mpp")) module_node->setIcon(cpp_icon);
                 nodes.emplace_back(std::move(module_node));
             }
@@ -289,18 +289,6 @@ namespace XMakeProjectManager::Internal {
 
             auto *parent = addTargetNode(root, target);
 
-            auto modules_it =
-                std::find_if(std::cbegin(sources), std::cend(sources), [](const auto &batch) {
-                    return batch.kind == "cxxmodule";
-                });
-
-            auto modules = Target::SourceGroupList {};
-            if (modules_it != std::cend(sources)) {
-                modules.emplace_back(*modules_it);
-
-                sources.erase(modules_it);
-            }
-
             auto base_directory = Utils::FilePath {};
             for (const auto &source_group : sources) {
                 for (const auto &source : source_group.sources) {
@@ -318,39 +306,38 @@ namespace XMakeProjectManager::Internal {
                 parent->addNode(std::move(node));
             }
 
-            if (!std::empty(modules)) {
+            if (!target.modules.empty()) {
                 base_directory = Utils::FilePath {};
-                for (const auto &source_group : modules) {
-                    for (const auto &source : source_group.sources) {
-                        const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+                for (const auto &source : target.modules) {
+                    const auto source_path = Utils::FilePath::fromString(source).cleanPath();
 
-                        if (base_directory.isEmpty()) base_directory = source_path.parentDir();
-                        else
-                            base_directory =
-                                Utils::FileUtils::commonPath(base_directory, source_path);
-                    }
+                    if (base_directory.isEmpty()) base_directory = source_path.parentDir();
+                    else
+                        base_directory = Utils::FileUtils::commonPath(base_directory, source_path);
                 }
 
                 node = createSourceGroupNode(base_directory, "Module Files");
                 if (node) {
-                    buildTargetModuleTree(node.get(), modules);
+                    buildTargetHeaderTree(node.get(), target.modules);
                     parent->addNode(std::move(node));
                 }
             }
 
-            base_directory = Utils::FilePath {};
-            for (const auto &source : target.headers) {
-                const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+            if (!target.headers.empty()) {
+                base_directory = Utils::FilePath {};
+                for (const auto &source : target.headers) {
+                    const auto source_path = Utils::FilePath::fromString(source).cleanPath();
 
-                if (base_directory.isEmpty()) base_directory = source_path.parentDir();
-                else
-                    base_directory = Utils::FileUtils::commonPath(base_directory, source_path);
-            }
+                    if (base_directory.isEmpty()) base_directory = source_path.parentDir();
+                    else
+                        base_directory = Utils::FileUtils::commonPath(base_directory, source_path);
+                }
 
-            node = createSourceGroupNode(base_directory, "Header Files");
-            if (node) {
-                buildTargetHeaderTree(node.get(), target.headers);
-                parent->addNode(std::move(node));
+                node = createSourceGroupNode(base_directory, "Header Files");
+                if (node) {
+                    buildTargetHeaderTree(node.get(), target.headers);
+                    parent->addNode(std::move(node));
+                }
             }
 
             if (!(target.packages.empty() && target.frameworks.empty())) {

@@ -30,6 +30,7 @@ namespace XMakeProjectManager::Internal {
 
         SourceGroupList sources;
         QStringList headers;
+        QStringList modules;
 
         QString target_file;
 
