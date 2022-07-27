@@ -2,37 +2,31 @@
 // This file is subject to the license terms in the LICENSE file
 // found in the top-level of this distribution
 
+#include <iterator>
 #include <xmakeinfoparser/parsers/Common.hpp>
 
 #include <xmakeinfoparser/parsers/BuildSystemFilesParser.hpp>
 
 #include <QJsonDocument>
 
+#include <utils/filepath.h>
+
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    BuildSystemFilesParser::BuildSystemFilesParser(const QJsonDocument &json) {
+    BuildSystemFilesParser::BuildSystemFilesParser(const QJsonDocument &json,
+                                                   const Utils::FilePath &root) {
         auto json_files = get<QJsonArray>(json.object(), "project_files");
-        if (json_files) m_files = loadFiles(*json_files);
-    }
 
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto BuildSystemFilesParser::loadFiles(const QJsonArray &json_files)
-        -> std::vector<Utils::FilePath> {
-        auto files = std::vector<Utils::FilePath> {};
-        files.reserve(json_files.size());
+        if (json_files) {
+            auto files = extractPathArray(*json_files, root);
+            files.removeDuplicates();
 
-        std::transform(std::cbegin(json_files),
-                       std::cend(json_files),
-                       std::back_inserter(files),
-                       [](const auto &file) {
-                           return Utils::FilePath::fromString(file.toString());
-                       });
-
-        std::sort(files.begin(), files.end());
-        files.erase(std::unique(files.begin(), files.end()), files.end());
-
-        return files;
+            m_files.reserve(std::size(files));
+            std::transform(std::cbegin(files),
+                           std::cend(files),
+                           std::back_inserter(m_files),
+                           Utils::FilePath::fromString);
+        }
     }
 } // namespace XMakeProjectManager::Internal

@@ -3,6 +3,7 @@
 // found in the top-level of this distribution
 
 #include "ProjectTree.hpp"
+#include "utils/filepath.h"
 
 #include <QApplication>
 
@@ -254,7 +255,7 @@ namespace XMakeProjectManager::Internal {
                                               target.name,
                                               fromXMakeKind(target.kind));
         qCDebug(xmake_project_tree_log)
-            << "Target node " << target_node->path().toUserOutput() << " defined in"
+            << "Target node " << target.name << " defined in"
             << Utils::FilePath::fromString(target.defined_in).toUserOutput();
         target_node->setDisplayName(target.name);
 
@@ -272,6 +273,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto ProjectTree::buildTree(const Utils::FilePath &src_dir,
+                                const Utils::FilePath &project_dir,
                                 const TargetsList &targets,
                                 const std::vector<Utils::FilePath> &bs_files)
         -> std::unique_ptr<XMakeProjectNode> {
@@ -292,7 +294,14 @@ namespace XMakeProjectManager::Internal {
             auto base_directory = Utils::FilePath {};
             for (const auto &source_group : sources) {
                 for (const auto &source : source_group.sources) {
-                    const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+                    const auto source_path = [&] {
+                        auto path = Utils::FilePath::fromString(source);
+
+                        if (!path.isAbsolutePath())
+                            path = project_dir.resolvePath(Utils::FilePath::fromString(source));
+
+                        return path;
+                    }();
 
                     if (base_directory.isEmpty()) base_directory = source_path.parentDir();
                     else
@@ -309,7 +318,7 @@ namespace XMakeProjectManager::Internal {
             if (!target.modules.empty()) {
                 base_directory = Utils::FilePath {};
                 for (const auto &source : target.modules) {
-                    const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+                    const auto source_path = Utils::FilePath::fromString(source);
 
                     if (base_directory.isEmpty()) base_directory = source_path.parentDir();
                     else
@@ -326,7 +335,7 @@ namespace XMakeProjectManager::Internal {
             if (!target.headers.empty()) {
                 base_directory = Utils::FilePath {};
                 for (const auto &source : target.headers) {
-                    const auto source_path = Utils::FilePath::fromString(source).cleanPath();
+                    const auto source_path = Utils::FilePath::fromString(source);
 
                     if (base_directory.isEmpty()) base_directory = source_path.parentDir();
                     else

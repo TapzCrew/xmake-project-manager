@@ -17,6 +17,7 @@ namespace XMakeProjectManager::Internal {
 
         static std::unique_ptr<XMakeProjectNode>
             buildTree(const Utils::FilePath &src_dir,
+                      const Utils::FilePath &project_dir,
                       const TargetsList &targets,
                       const std::vector<Utils::FilePath> &bs_files);
     };

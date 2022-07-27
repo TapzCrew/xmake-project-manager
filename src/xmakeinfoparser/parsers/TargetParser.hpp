@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "utils/filepath.h"
 #include <vector>
 
 #include <QString>
@@ -21,15 +22,15 @@ QT_END_NAMESPACE
 namespace XMakeProjectManager::Internal {
     class TargetParser {
       public:
-        explicit TargetParser(const QJsonDocument &json);
+        explicit TargetParser(const QJsonDocument &json, const Utils::FilePath &root);
 
         const TargetsList &targets() const noexcept;
 
       private:
-        static TargetsList loadTargets(const QJsonArray &json_targets);
-        static Target loadTarget(const QJsonValue &json_target);
-        static Target::SourceGroupList extractSources(const QJsonArray &json_sources);
-        static Target::SourceGroup extractSource(const QJsonValue &json_source);
+        static TargetsList loadTargets(const QJsonArray &json_targets, const Utils::FilePath &root);
+        static Target loadTarget(const QJsonValue &json_target, const Utils::FilePath &root);
+        static Target::SourceGroupList extractSources(const QJsonArray &json_sources, const Utils::FilePath &root);
+        static Target::SourceGroup extractSource(const QJsonValue &json_source, const Utils::FilePath &root);
 
         TargetsList m_targets;
     };

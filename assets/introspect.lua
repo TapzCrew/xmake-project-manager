@@ -9,14 +9,6 @@ import("core.project.project")
 import("core.tool.compiler")
 import("core.base.json")
 
-function string_starts(string,start)
-   return string.sub(string, 1, string.len(start)) == start
-end
-
-function string_ends(string, ends)
-   return string.sub(string, -string.len(ends)) == ends
-end
-
 -- main entry
 function main ()
     local output = {}
@@ -31,48 +23,40 @@ function main ()
     local targets = {}
     local qml_import_path = {}
     for name, target in pairs((project:targets())) do
-        local header_files = {}
+        local target_with_modules = (target:modulefiles() and #target:modulefiles() > 0) and true or false
 
-        for _, file in ipairs(target:headerfiles()) do
-            file = path.absolute(file, project:directory()):gsub("%\\", "/")
-            table.insert(header_files, file)
+        for _, dep in ipairs(target:orderdeps()) do
+            local modulefiles = dep:get("modulefiles")
+            if modulefiles and #modulefiles > 0 then
+                target_with_modules = true
+                break
+            end
         end
 
+        local header_files = target:headerfiles()
         table.sort(header_files)
 
-        local module_files = {}
-
-        for _, file in ipairs(target:modulefiles()) do
-            file = path.absolute(file, project:directory()):gsub("%\\", "/")
-            table.insert(module_files, file)
-        end
-
+        local module_files = target:modulefiles()
         table.sort(module_files)
-
-        local source_batches = {}
 
         local target_sourcebatches = {}
         for _, batch in pairs(target:sourcebatches()) do
-            table.insert(target_sourcebatches, batch)
+            table.append(target_sourcebatches, batch)
         end
 
         table.sort(target_sourcebatches, function (first, second) return first.rulename < second.rulename end)
 
+        local source_batches = {}
         local last_cxx_arguments = {}
         for name, batch in ipairs(target_sourcebatches) do
             if batch.rulename == "c++.build.modules.builder.headerunits" or batch.rulename == "qt.moc" or batch.rulename == "qt.qmltyperegistrar" then
                 goto continue4
             end
 
-            local source_files = {}
-
-            for _, file in ipairs(batch.sourcefiles) do
-                file = path.absolute(file, project:directory()):gsub("%\\", "/")
-                table.insert(source_files, file)
-            end
+            local source_files = batch.sourcefiles
 
             local arguments = {}
-            for _, file in ipairs(batch.sourcefiles) do
+            for _, file in ipairs(source_files) do
                 if batch.rulename == "c++.build" or batch.rulename == "c.build" then
                     local args = compiler.compflags(file, {target = target})
 
@@ -84,30 +68,7 @@ function main ()
                                     goto continue2
                             end
 
-                            if string_starts(argument, "-I") then
-                                    local p = argument:sub(3, argument:len())
-                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                    table.insert(arguments, format("-I%s", p))
-                            elseif string_starts(argument, "-external:I") then
-                                    local p = argument:sub(12, argument:len())
-                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                    table.insert(arguments, format("-external:I%s", p))
-                            elseif(string_starts(argument, "-isystem")) then
-                                    table.insert(arguments, argument .. " ".. args[i + 1])
-                                    ignore_next_arg = true
-                            elseif string_starts(argument, "/I") then
-                                    local p = argument:sub(3, argument:len())
-                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                    table.insert(arguments, format("/I%s", p))
-                            elseif string_starts(argument, "/external:I") then
-                                    local p = argument:sub(12, argument:len())
-                                    p = path.absolute(p, project:directory()):gsub("%\\", "/")
-
-                                    table.insert(arguments, format("/external:I%s", p))
-                            elseif(string_starts(argument, "/isystem")) then
+                            if argument:startswith("/isystem") then
                                     table.insert(arguments, argument .. " ".. args[i + 1])
                                     ignore_next_arg = true
                             else
@@ -117,15 +78,25 @@ function main ()
                             ::continue2::
                      end
 
+
                      if batch.sourcekind and (batch.sourcekind == "cxx" or batch.sourcekind == "cc") then
                             last_cxx_arguments = arguments
                      end
-
-                     source_files = table.join(source_files, header_files)
                 end
-
             end
 
+
+            table.join2(source_files, header_files, module_files)
+
+            if batch.rulename == "c.build" then
+                table.join2(arguments, target:get("cflags"))
+            end
+
+            if batch.rulename == "c++.build" then
+                table.join2(arguments, target:get("cxxflags"))
+            end
+
+            arguments = table.unique(arguments)
 
             local kind = ""
             if batch.sourcekind then
@@ -134,20 +105,14 @@ function main ()
                 kind = "unknown"
             end
 
-            table.insert(source_batches, { kind = kind, source_files = source_files, arguments = arguments})
+            table.append(source_batches, { kind = kind, source_files = source_files, arguments = arguments})
 
             ::continue4::
         end
 
-        local target_file = target:targetfile()
+        local target_file = target:targetfile() or ""
 
-        if target_file then
-            target_file = path.absolute(target_file, project:directory()):gsub("%\\", "/")
-        else
-            target_file = ""
-        end
-
-        local defined_in = path.absolute("xmake.lua", target:scriptdir()):gsub("%\\", "/")
+        local defined_in = path.absolute("xmake.lua", target:scriptdir())
 
         local use_qt = false
         local frameworks = target:get("frameworks")
@@ -162,7 +127,7 @@ function main ()
 
         if use_qt then
             for _, p in ipairs(target:get("runenv")["QML2_IMPORT_PATH"]) do
-                p = path.absolute(p, project:directory()):gsub("%\\", "/")
+                p = project:directory()
                 table.append(qml_import_path, p)
             end
         end
@@ -177,7 +142,8 @@ function main ()
                                 packages = target:get("packages"),
                                 frameworks = target:get("frameworks"),
                                 use_qt = use_qt,
-                                group = target:get("group") } )
+                                group = target:get("group"),
+                                autogendir = target:autogendir() } )
     end
 
     table.sort(targets, function(first, second) return first.name > second.name end)
@@ -202,13 +168,9 @@ function main ()
 
     output.options = options
 
-    local project_files = {}
-    for _, project_file in ipairs((project:allfiles())) do
-        project_file = project_file:gsub("%\\", "/")
-        table.insert(project_files, project_file)
-    end
+    output.project_dir = project:directory()
     output.qml_import_path = qml_import_path
-    output.project_files = project_files
+    output.project_files = project:allfiles()
 
 
     print(json.encode(output))

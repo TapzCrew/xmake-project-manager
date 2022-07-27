@@ -3,9 +3,6 @@
 // found in the top-level of this distribution
 
 #include "XMakeProjectParser.hpp"
-#include "projectexplorer/headerpath.h"
-#include "projectexplorer/rawprojectpart.h"
-#include "utils/filepath.h"
 
 #include <algorithm>
 
@@ -14,11 +11,14 @@
 
 #include <coreplugin/messagemanager.h>
 
+#include <projectexplorer/headerpath.h>
 #include <projectexplorer/projectexplorer.h>
+#include <projectexplorer/rawprojectpart.h>
 
 #include <cppeditor/cppeditorconstants.h>
 
 #include <utils/fileinprojectfinder.h>
+#include <utils/filepath.h>
 #include <utils/mimeutils.h>
 #include <utils/runextensions.h>
 
@@ -98,8 +98,14 @@ namespace XMakeProjectManager::Internal {
 
         for (const QString &arg : args) {
             auto inc = extractInclude(arg);
-            if (inc) splited.include_paths << *inc;
-            else {
+            if (inc) {
+                auto p = *inc;
+                p.path = Utils::FilePath::fromString(p.path).cleanPath().toString();
+                if (auto path = Utils::FilePath::fromString(p.path); !path.isAbsolutePath())
+                    p.path = src_dir.resolvePath(path.cleanPath()).toString();
+
+                splited.include_paths << p;
+            } else {
                 auto macro = extractMacro(arg);
                 if (macro) splited.macros << *macro;
                 else
@@ -194,14 +200,13 @@ namespace XMakeProjectManager::Internal {
             if (target.kind == Target::Kind::BINARY) {
                 auto &target_info = apps.emplace_back();
 
-                auto target_file = m_src_dir.resolvePath(target.target_file).path();
-
                 target_info.displayName = target.name;
-                target_info.buildKey = Target::fullName(m_src_dir, target_file, target.defined_in);
+                target_info.buildKey =
+                    Target::fullName(m_src_dir, target.target_file, target.defined_in);
                 target_info.displayNameUniquifier = target_info.buildKey;
-                target_info.targetFilePath        = Utils::FilePath::fromString(target_file);
+                target_info.targetFilePath        = Utils::FilePath::fromString(target.target_file);
                 target_info.workingDirectory =
-                    Utils::FilePath::fromString(target_file).absolutePath();
+                    Utils::FilePath::fromString(target.target_file).absolutePath();
                 target_info.projectFilePath = Utils::FilePath::fromString(target.defined_in);
                 target_info.usesTerminal    = true;
             }
@@ -268,6 +273,8 @@ namespace XMakeProjectManager::Internal {
 
                     part.setQtVersion(qt_version);
 
+                    part.headerPaths.append(
+                        ProjectExplorer::HeaderPath::makeSystem(qt_header_path));
                     part.headerPaths.append(include_paths);
                 }
             }
@@ -357,6 +364,7 @@ namespace XMakeProjectManager::Internal {
         -> XMakeProjectParser::ParserData * {
         qCDebug(xmake_project_parser_log) << "Extract parser results";
         auto root_node = ProjectTree::buildTree(src_dir,
+                                                parser_result.project_dir,
                                                 parser_result.targets,
                                                 parser_result.build_system_files);
 
@@ -410,17 +418,10 @@ namespace XMakeProjectManager::Internal {
 
         auto include_paths = flags.include_paths;
 
-        auto absolute_sources = QStringList {};
-        absolute_sources.reserve(std::size(sources.sources) + std::size(target.headers));
-        std::transform(std::cbegin(sources.sources),
-                       std::cend(sources.sources),
-                       std::back_inserter(absolute_sources),
-                       [&src_dir = m_src_dir](const auto &file) {
-                           return src_dir.resolvePath(file).path();
-                       });
-        absolute_sources.removeDuplicates();
+        auto _sources = sources.sources;
+        _sources.removeDuplicates();
 
-        part.setFiles(absolute_sources, {}, [](const auto &path) {
+        part.setFiles(_sources, {}, [](const auto &path) {
             return Utils::mimeTypeForFile(path).name();
         });
         part.setMacros(flags.macros);

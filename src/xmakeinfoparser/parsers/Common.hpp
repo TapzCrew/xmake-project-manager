@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "utils/filepath.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -50,6 +51,25 @@ namespace XMakeProjectManager::Internal {
                        std::cend(array),
                        std::back_inserter(output),
                        [](const auto &v) { return v.toString(); });
+
+        return output;
+    }
+
+    inline auto extractPathArray(const QJsonArray &array, const Utils::FilePath &root)
+        -> QStringList {
+        auto output = QStringList {};
+        output.reserve(std::size(array));
+
+        std::transform(std::cbegin(array),
+                       std::cend(array),
+                       std::back_inserter(output),
+                       [&root](const auto &v) {
+                           auto path = Utils::FilePath::fromString(v.toString()).cleanPath();
+
+                           if (!path.isAbsolutePath()) path = root.resolvePath(path);
+
+                           return path.toString();
+                       });
 
         return output;
     }

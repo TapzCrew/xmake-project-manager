@@ -10,6 +10,7 @@
 #include <xmakeinfoparser/XMakeInfo.hpp>
 #include <xmakeinfoparser/XMakeTargetParser.hpp>
 
+#include <utils/filepath.h>
 #include <utils/fileutils.h>
 #include <utils/optional.h>
 
@@ -25,6 +26,8 @@ namespace XMakeProjectManager::Internal {
             BuildOptionsList options;
 
             TargetsList targets;
+
+            Utils::FilePath project_dir;
 
             std::vector<Utils::FilePath> build_system_files;
 
