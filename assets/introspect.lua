@@ -25,10 +25,11 @@ function main ()
     local targets = {}
     local qml_import_path = {}
     for name, target in pairs((project:targets())) do
-        local target_with_modules = (target:modulefiles() and #target:modulefiles() > 0) and true or false
+        local target_with_modules = (target.modulefiles and #target:modulefiles() > 0) and true or false
 
         for _, dep in ipairs(target:orderdeps()) do
-            local modulefiles = dep:get("modulefiles")
+            local modulefiles = dep.modulefiles and dep:modulefiles() or {}
+
             if modulefiles and #modulefiles > 0 then
                 target_with_modules = true
                 break
