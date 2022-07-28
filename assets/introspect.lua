@@ -36,7 +36,7 @@ function main ()
         local header_files = target:headerfiles()
         table.sort(header_files)
 
-        local module_files = target:modulefiles and target:modulefiles() or {}
+        local module_files = target.modulefiles and target:modulefiles() or {}
         table.sort(module_files)
 
         local target_sourcebatches = {}
