@@ -36,6 +36,22 @@ function main ()
             end
         end
 
+        if target_with_modules then
+            local build_modules
+            if target:has_tool("cxx", "clang", "clangxx") then
+                build_modules = import("build_modules.clang", {rootdir = path.join(os.programdir(), "rules", "c++", "modules")})
+            elseif target:has_tool("cxx", "gcc", "gxx") then
+                build_modules = import("build_modules.gcc", {rootdir = path.join(os.programdir(), "rules", "c++", "modules")})
+            elseif target:has_tool("cxx", "cl") then
+                build_modules = import("build_modules.msvc", {rootdir = path.join(os.programdir(), "rules", "c++", "modules")})
+            else
+                local _, toolname = target:tool("cxx")
+                raise("compiler(%s): does not support c++ module!", toolname)
+            end
+
+            build_modules.load_parent(target, opt)
+        end
+
         local header_files = target:headerfiles()
         table.sort(header_files)
 
@@ -74,6 +90,12 @@ function main ()
                             if argument:startswith("/isystem") then
                                     table.insert(arguments, argument .. " ".. args[i + 1])
                                     ignore_next_arg = true
+                            elseif argument:startswith("/ifcSearchDir") then
+                                    table.insert(arguments, argument .. " ".. args[i + 1])
+                                    ignore_next_arg = true
+                            elseif argument:startswith("/stdIfcDir") then
+                                    table.insert(arguments, argument .. " ".. args[i + 1])
+                                    ignore_next_arg = true
                             else
                                     table.insert(arguments, argument)
                             end
@@ -90,14 +112,6 @@ function main ()
 
 
             table.join2(source_files, header_files, module_files)
-
-            if batch.rulename == "c.build" then
-                table.join2(arguments, target:get("cflags"))
-            end
-
-            if batch.rulename == "c++.build" then
-                table.join2(arguments, target:get("cxxflags"))
-            end
 
             arguments = table.unique(arguments)
 
