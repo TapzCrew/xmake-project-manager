@@ -7,6 +7,7 @@
 #include <QString>
 #include <QStringList>
 
+#include <unordered_map>
 #include <vector>
 
 namespace Utils {
@@ -31,6 +32,9 @@ namespace XMakeProjectManager::Internal {
         SourceGroupList sources;
         QStringList headers;
         QStringList modules;
+
+        std::unordered_map<QString, QString> set_env;
+        std::unordered_map<QString, QStringList> add_env;
 
         QString target_file;
 

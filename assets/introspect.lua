@@ -7,7 +7,9 @@
 import("core.project.config")
 import("core.project.project")
 import("core.tool.compiler")
+import("core.tool.linker")
 import("core.base.json")
+import("private.action.run.make_runenvs")
 
 -- main entry
 function main ()
@@ -132,8 +134,35 @@ function main ()
             end
         end
 
+        function _add_target_pkgenvs(target, pkgenvs, targets_added)
+            if targets_added[target:name()] then
+                return
+            end
+
+            targets_added[target:name()] = true
+
+            table.join2(pkgenvs, target:pkgenvs())
+
+            for _, dep in ipairs(target:orderdeps()) do
+                _add_target_pkgenvs(dep, pkgenvs, targets_added)
+            end
+        end
+
+
+        local pkgenvs = {}
+        _add_target_pkgenvs(target, pkgenvs, {})
+
+        local addrunenvs, setrunenvs = make_runenvs(target)
+        local runenvs = { add = addrunenvs, set = setrunenvs }
+
+        for name, env in pairs(pkgenvs) do
+            runenvs.add[name] = runenvs.add[name] or {}
+            table.append(runenvs.add[name], env)
+        end
+
         table.insert(targets, { name = name,
                                 kind = target:targetkind(),
+                                run_envs = runenvs,
                                 defined_in = defined_in,
                                 source_batches = source_batches,
                                 header_files = header_files,

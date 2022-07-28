@@ -9,6 +9,7 @@
 
 #include <QJsonDocument>
 #include <QJsonValue>
+#include <QMapIterator>
 
 namespace XMakeProjectManager::Internal {
 
@@ -77,6 +78,23 @@ namespace XMakeProjectManager::Internal {
         auto json_modules = json_target["module_files"].toArray();
         target.modules    = extractPathArray(json_modules, root);
         target.modules.removeDuplicates();
+
+        auto json_run_envs = json_target["run_envs"];
+        auto set_run_envs  = json_run_envs["set"].toObject().toVariantMap();
+
+        for (auto it = set_run_envs.begin(); it != set_run_envs.end(); ++it) {
+            target.set_env.emplace(it.key(), it.value().toString());
+        }
+
+        auto add_run_envs = json_run_envs["add"].toObject().toVariantMap();
+
+        for (auto it = add_run_envs.begin(); it != add_run_envs.end(); ++it) {
+            const auto values = it.value().toJsonArray();
+
+            auto &output = target.add_env.emplace(it.key(), QStringList {}).first->second;
+
+            for (const auto &value : values) { output.emplace_back(value.toString()); }
+        }
 
         target.target_file = [&] {
             auto path =

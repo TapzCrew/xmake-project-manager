@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include <exewrappers/XMakeTools.hpp>
+#include <iterator>
 #include <project/projecttree/ProjectTree.hpp>
 
 #include <coreplugin/messagemanager.h>
@@ -199,6 +200,43 @@ namespace XMakeProjectManager::Internal {
         for (const auto &target : m_parser_result.targets) {
             if (target.kind == Target::Kind::BINARY) {
                 auto &target_info = apps.emplace_back();
+
+                target_info.runEnvModifier = [add = target.add_env,
+                                              set = target.set_env](Utils::Environment &env,
+                                                                    bool add_to_path) {
+                    if (!add_to_path) return;
+
+                    for (const auto &[name, value] : set) env.set(name, value);
+
+                    for (const auto &[name, values] : add) {
+                        if (name == "PATH" || name == "LD_LIBRARY_PATH") {
+                            if (name == "PATH")
+                                for (const auto &value : values)
+                                    env.appendOrSetPath(
+                                        Utils::FilePath::fromString(value).cleanPath());
+                            else
+                                for (const auto &value : values)
+                                    env.appendOrSet(
+                                        name,
+                                        Utils::FilePath::fromString(value).cleanPath().toString());
+                        } else
+                            for (const auto &value : values) env.appendOrSet(name, value);
+                    }
+                };
+
+                const auto env = [&] {
+                    auto output = QStringList {};
+
+                    for (const auto &[name, value] : target.set_env) output.emplace_back(value);
+
+                    for (const auto &[name, values] : target.add_env) {
+                        for (const auto &value : values) output.emplace_back(value);
+                    }
+
+                    return output;
+                }();
+
+                target_info.runEnvModifierHash = qHash(env);
 
                 target_info.displayName = target.name;
                 target_info.buildKey =
