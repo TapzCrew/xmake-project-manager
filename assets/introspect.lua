@@ -87,7 +87,7 @@ function main ()
                                     goto continue2
                             end
 
-                            if argument:startswith("/isystem") then
+                            if argument:startswith("-isystem") then
                                     table.insert(arguments, argument .. " ".. args[i + 1])
                                     ignore_next_arg = true
                             elseif argument:startswith("/ifcSearchDir") then
@@ -113,7 +113,9 @@ function main ()
 
             table.join2(source_files, header_files, module_files)
 
+            print(arguments)
             arguments = table.unique(arguments)
+            print(arguments)
 
             local kind = ""
             if batch.sourcekind then
