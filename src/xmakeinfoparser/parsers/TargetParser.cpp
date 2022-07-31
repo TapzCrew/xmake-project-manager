@@ -34,7 +34,7 @@ namespace XMakeProjectManager::Internal {
                        [&root](const auto &v) { return loadTarget(v, root); });
 
         std::sort(targets.begin(), targets.end(), [](const auto &a, const auto &b) {
-            return a.name.compare(b.name);
+            return a.name < b.name;
         });
 
         targets.erase(std::unique(targets.begin(),

@@ -39,7 +39,6 @@ namespace XMakeProjectManager::Internal {
             if (kit_info.qtVersion && !kit_info.qtVersion->prefix().isEmpty()) {
                 m_parameters +=
                     QString { " --qt=\"%1\"" }.arg(kit_info.qtVersion->prefix().nativePath());
-                qDebug() << m_parameters;
             }
 
             if (info.buildDirectory.isEmpty())
