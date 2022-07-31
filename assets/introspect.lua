@@ -68,7 +68,7 @@ function main ()
         local source_batches = {}
         local last_cxx_arguments = {}
         for name, batch in ipairs(target_sourcebatches) do
-            if batch.rulename == "c++.build.modules.builder.headerunits" or batch.rulename == "qt.moc" or batch.rulename == "qt.qmltyperegistrar" then
+            if batch.rulename == "c++.build.modules.builder" or batch.rulename == "qt.moc" or batch.rulename == "qt.qmltyperegistrar" then
                 goto continue4
             end
 
