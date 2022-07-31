@@ -113,9 +113,7 @@ function main ()
 
             table.join2(source_files, header_files, module_files)
 
-            print(arguments)
             arguments = table.unique(arguments)
-            print(arguments)
 
             local kind = ""
             if batch.sourcekind then
