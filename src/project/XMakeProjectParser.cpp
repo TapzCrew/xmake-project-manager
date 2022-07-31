@@ -72,7 +72,7 @@ namespace XMakeProjectManager::Internal {
         auto path = extractValueIfMatches(arg, { "-I", "/I", "-imsvc", "/imsvc" });
         if (path) return ProjectExplorer::HeaderPath::makeUser(*path);
 
-        path = extractValueIfMatches(arg, { "-isystem", "/external:I", "-external:I" });
+        path = extractValueIfMatches(arg, { "-isystem ", "/external:I ", "-external:I " });
         if (path) return ProjectExplorer::HeaderPath::makeSystem(*path);
 
         return Utils::nullopt;
