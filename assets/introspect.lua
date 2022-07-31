@@ -142,7 +142,7 @@ function main ()
         end
         ::continue3::
 
-        if use_qt then
+        if use_qt and target:get("runenv") and target:get("runenv")["QML2_IMPORT_PATH"] then
             for _, p in ipairs(target:get("runenv")["QML2_IMPORT_PATH"]) do
                 p = project:directory()
                 table.append(qml_import_path, p)
