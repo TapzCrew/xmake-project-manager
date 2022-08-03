@@ -12,13 +12,15 @@ namespace XMakeProjectManager::Internal {
     class XMakeBuildParser final: public ProjectExplorer::OutputTaskParser {
         Q_OBJECT
       public:
-        XMakeBuildParser();
+        enum class Type { MSVC, GCC_Clang };
+
+        XMakeBuildParser(Type type);
         ~XMakeBuildParser();
 
         XMakeBuildParser(XMakeBuildParser &&)      = delete;
         XMakeBuildParser(const XMakeBuildParser &) = delete;
 
-        XMakeBuildParser &operator=(XMakeBuildParser &&) = delete;
+        XMakeBuildParser &operator=(XMakeBuildParser &&)             = delete;
         XMakeBuildParser &operator=(const XMakeBuildParser &&) const = delete;
 
         Result handleLine(const QString &line, Utils::OutputFormat type) override;
@@ -42,7 +44,12 @@ namespace XMakeProjectManager::Internal {
 
         // error: test/main.cpp:12:3: error: ‘a’ was not declared in this scope
         const QRegularExpression m_progress_regex { R"(^\[\s*(\d+)\%\])" };
-        const QRegularExpression m_error_regex { R"(error: (.*):(\d+):(\d+): error: (.*))" };
+
+        QRegularExpression m_error_regex;
+        const QString m_msvc_error_regex { QStringLiteral(R"((.+)\((\d+)\): (.+))") };
+        const QString m_gcc_error_regex { QStringLiteral(R"(error: (.*):(\d+):(\d+): (.*))") };
+
+        bool m_has_char_number = false;
     };
 } // namespace XMakeProjectManager::Internal
 

@@ -11,7 +11,10 @@
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    XMakeBuildParser::XMakeBuildParser() = default;
+    XMakeBuildParser::XMakeBuildParser(Type type) : m_has_char_number { type != Type::MSVC } {
+        m_error_regex =
+            QRegularExpression { (type == Type::MSVC) ? m_msvc_error_regex : m_gcc_error_regex };
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -68,13 +71,14 @@ namespace XMakeProjectManager::Internal {
 
         auto file_name =
             absoluteFilePath(Utils::FilePath::fromString(match.captured(file_cap_index)));
-        auto task =
-            ProjectExplorer::CompileTask { type,
-                                           QString { QStringLiteral("XMake build error: %1") }.arg(
-                                               match.captured(error_cap_index)),
-                                           file_name,
-                                           match.captured(line_number_cap_index).toInt(),
-                                           match.captured(char_number_cap_index).toInt() };
+        auto task = ProjectExplorer::CompileTask {
+            type,
+            QString { QStringLiteral("%1") }.arg(
+                match.captured((m_has_char_number) ? error_cap_index : char_number_cap_index)),
+            file_name,
+            match.captured(line_number_cap_index).toInt(),
+            (m_has_char_number) ? match.captured(char_number_cap_index).toInt() : 0
+        };
 
         addLinkSpecForAbsoluteFilePath(link_specs, task.file, task.line, match, file_cap_index);
         ProjectExplorer::TaskHub::addTask(std::move(task));

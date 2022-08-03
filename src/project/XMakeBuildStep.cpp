@@ -14,6 +14,8 @@
 
 #include <settings/tools/kitaspect/XMakeToolKitAspect.hpp>
 
+#include <qtsupport/qtcppkitinfo.h>
+
 #include <projectexplorer/buildsteplist.h>
 #include <projectexplorer/processparameters.h>
 #include <projectexplorer/projectexplorerconstants.h>
@@ -217,7 +219,10 @@ namespace XMakeProjectManager::Internal {
 
         formatter->addLineParser(xmake_output_parser); // formatter get ownship of parser
 
-        m_xmake_parser = new XMakeBuildParser {};
+        const auto toolchain = QtSupport::CppKitInfo { kit() }.cxxToolChain;
+        m_xmake_parser       = new XMakeBuildParser { (toolchain->displayName().contains("visual")
+                                                           ? XMakeBuildParser::Type::MSVC
+                                                           : XMakeBuildParser::Type::GCC_Clang) };
         m_xmake_parser->setSourceDirectory(project()->projectDirectory());
 
         formatter->addLineParser(m_xmake_parser);

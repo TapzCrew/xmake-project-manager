@@ -113,10 +113,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto XMakeOutputParser::addTask(ProjectExplorer::Task::TaskType type, QStringView line)
         -> void {
-        auto task = ProjectExplorer::BuildSystemTask {
-            type,
-            QString { QStringLiteral("XMake configuration: %1") }.arg(line)
-        };
+        auto task = ProjectExplorer::BuildSystemTask { type, line.toString() };
         addTask(std::move(task));
     }
 
