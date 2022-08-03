@@ -44,7 +44,7 @@ function main ()
         local cxx_arguments
         if cxx_source_batch then
             for _, sourcefile in ipairs(cxx_source_batch.sourcefiles) do
-                local args = compiler.compflags(sourcefile, {target = target})
+                local arguments = compiler.compflags(sourcefile, {target = target})
 
                 local ignore_next_arg = false
                 for i, argument in ipairs(arguments) do
@@ -54,7 +54,6 @@ function main ()
                         end
 
                         cxx_arguments = cxx_arguments or {}
-                        local cxx_argument
                         cxx_argument, ignore_next_arg = parse_cxflags(argument, arguments)
                         table.append(cxx_arguments, cxx_argument)
 
@@ -81,7 +80,6 @@ function main ()
                         end
 
                         c_arguments = c_arguments or {}
-                        local c_argument
                         c_argument, ignore_next_arg = parse_cxflags(argument, arguments)
                         table.append(c_arguments, c_argument)
 
@@ -96,11 +94,13 @@ function main ()
         local source_batches = {}
 
         if cxx_source_files then
-            table.append(source_batches, { kind = cxx_source_batch.kind, source_files = cxx_source_files, arguments = cxx_arguments})
+            table.append(source_batches, { kind = cxx_source_batch.sourcekind, source_files = cxx_source_files, arguments = cxx_arguments or {}})
         end
         if c_source_files then
-            table.append(source_batches, { kind = c_source_batch.kind, source_files = c_source_files, arguments = c_arguments})
+            table.append(source_batches, { kind = c_source_batch.sourcekind, source_files = c_source_files, arguments = c_arguments or {}})
         end
+
+--print(source_batches)
 
         local target_file = target:targetfile() or ""
 
