@@ -42,7 +42,6 @@ function main ()
         local cxx_module_batch = target:sourcebatches()["c++.build.modules"]
         local cxx_source_files
         local cxx_arguments
-            print(cxx_source_batch)
         if cxx_source_batch then
             for _, sourcefile in ipairs(cxx_source_batch.sourcefiles) do
                 local args = compiler.compflags(sourcefile, {target = target})
