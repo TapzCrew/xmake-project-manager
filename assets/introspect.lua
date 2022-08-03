@@ -100,8 +100,6 @@ function main ()
             table.append(source_batches, { kind = c_source_batch.sourcekind, source_files = c_source_files, arguments = c_arguments or {}})
         end
 
---print(source_batches)
-
         local target_file = target:targetfile() or ""
 
         local defined_in = path.absolute("xmake.lua", target:scriptdir())
@@ -156,7 +154,7 @@ function main ()
                                 defined_in = defined_in,
                                 source_batches = source_batches,
                                 header_files = header_files,
-                                module_files = module_files,
+                                module_files = cxx_module_batch.sourcefiles or {},
                                 target_file = target_file,
                                 packages = target:get("packages"),
                                 frameworks = target:get("frameworks"),
