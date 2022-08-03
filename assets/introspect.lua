@@ -154,7 +154,7 @@ function main ()
                                 defined_in = defined_in,
                                 source_batches = source_batches,
                                 header_files = header_files,
-                                module_files = cxx_module_batch.sourcefiles or {},
+                                module_files = cxx_module_batch and cxx_module_batch.sourcefiles or {},
                                 target_file = target_file,
                                 packages = target:get("packages"),
                                 frameworks = target:get("frameworks"),
