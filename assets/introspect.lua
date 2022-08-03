@@ -11,6 +11,16 @@ import("core.tool.linker")
 import("core.base.json")
 import("private.action.run.make_runenvs")
 
+function parse_cxflags(argument, arguments)
+    if argument:startswith("/isystem") or
+       argument:startswith("/ifcSearchDir") or
+       argument:startswith("/stdIfcDir") then
+        return  argument .. " ".. arguments[i + 1], true
+    end
+
+    return argument, false
+end
+
 -- main entry
 function main ()
     local output = {}
@@ -25,106 +35,72 @@ function main ()
     local targets = {}
     local qml_import_path = {}
     for name, target in pairs((project:targets())) do
-        local target_with_modules = (target.modulefiles and #target:modulefiles() > 0) and true or false
-
-        for _, dep in ipairs(target:orderdeps()) do
-            local modulefiles = dep.modulefiles and dep:modulefiles() or {}
-
-            if modulefiles and #modulefiles > 0 then
-                target_with_modules = true
-                break
-            end
-        end
-
-        if target_with_modules then
-            local build_modules
-            if target:has_tool("cxx", "clang", "clangxx") then
-                build_modules = import("build_modules.clang", {rootdir = path.join(os.programdir(), "rules", "c++", "modules")})
-            elseif target:has_tool("cxx", "gcc", "gxx") then
-                build_modules = import("build_modules.gcc", {rootdir = path.join(os.programdir(), "rules", "c++", "modules")})
-            elseif target:has_tool("cxx", "cl") then
-                build_modules = import("build_modules.msvc", {rootdir = path.join(os.programdir(), "rules", "c++", "modules")})
-            else
-                local _, toolname = target:tool("cxx")
-                raise("compiler(%s): does not support c++ module!", toolname)
-            end
-
-            build_modules.load_parent(target, opt)
-        end
-
         local header_files = target:headerfiles()
         table.sort(header_files)
 
-        local module_files = target.modulefiles and target:modulefiles() or {}
-        table.sort(module_files)
+        local cxx_source_batch = target:sourcebatches()["c++.build"]
+        local cxx_module_batch = target:sourcebatches()["c++.build.modules"]
+        local cxx_source_files
+        local cxx_arguments
+            print(cxx_source_batch)
+        if cxx_source_batch then
+            for _, sourcefile in ipairs(cxx_source_batch.sourcefiles) do
+                local args = compiler.compflags(sourcefile, {target = target})
 
-        local target_sourcebatches = {}
-        for _, batch in pairs(target:sourcebatches()) do
-            table.append(target_sourcebatches, batch)
+                local ignore_next_arg = false
+                for i, argument in ipairs(arguments) do
+                        if ignore_next_arg then
+                                ignore_next_arg = false
+                                goto continue2
+                        end
+
+                        cxx_arguments = cxx_arguments or {}
+                        local cxx_argument
+                        cxx_argument, ignore_next_arg = parse_cxflags(argument, arguments)
+                        table.append(cxx_arguments, cxx_argument)
+
+                        ::continue2::
+                 end
+            end
+
+            cxx_source_files = cxx_source_files or {}
+            table.join2(cxx_source_files, cxx_source_batch.sourcefiles, header_files, cxx_module_batch and cxx_module_batch.sourcefiles or {})
         end
 
-        table.sort(target_sourcebatches, function (first, second) return first.rulename < second.rulename end)
+        local c_source_batch = target:sourcebatches()["c.build"]
+        local c_source_files
+        local c_arguments
+        if c_source_batch then
+            for _, sourcefile in ipairs(c_source_batch.sourcefiles) do
+                local args = compiler.compflags(sourcefile, {target = target})
+
+                local ignore_next_arg = false
+                for i, argument in ipairs(arguments) do
+                        if ignore_next_arg then
+                                ignore_next_arg = false
+                                goto continue2
+                        end
+
+                        c_arguments = c_arguments or {}
+                        local c_argument
+                        c_argument, ignore_next_arg = parse_cxflags(argument, arguments)
+                        table.append(c_arguments, c_argument)
+
+                        ::continue2::
+                 end
+            end
+
+            c_source_files = c_source_files or {}
+            table.join2(c_source_files, c_source_batch.sourcefiles, header_files, c_module_batch and c_module_batch.sourcefiles or {})
+        end
 
         local source_batches = {}
-        local last_cxx_arguments = {}
-        for name, batch in ipairs(target_sourcebatches) do
-            if batch.rulename == "c++.build.modules.builder" or batch.rulename == "qt.moc" or batch.rulename == "qt.qmltyperegistrar" then
-                goto continue4
-            end
 
-            local source_files = batch.sourcefiles
-
-            local arguments = {}
-            for _, file in ipairs(source_files) do
-                if batch.rulename == "c++.build" or batch.rulename == "c.build" then
-                    local args = compiler.compflags(file, {target = target})
-
-                    local ignore_next_arg = false
-
-                    for i, argument in ipairs(args) do
-                            if ignore_next_arg then
-                                    ignore_next_arg = false
-                                    goto continue2
-                            end
-
-                            if argument:startswith("-isystem") then
-                                    table.insert(arguments, argument .. " ".. args[i + 1])
-                                    ignore_next_arg = true
-                            elseif argument:startswith("/ifcSearchDir") then
-                                    table.insert(arguments, argument .. " ".. args[i + 1])
-                                    ignore_next_arg = true
-                            elseif argument:startswith("/stdIfcDir") then
-                                    table.insert(arguments, argument .. " ".. args[i + 1])
-                                    ignore_next_arg = true
-                            else
-                                    table.insert(arguments, argument)
-                            end
-
-                            ::continue2::
-                     end
-
-
-                     if batch.sourcekind and (batch.sourcekind == "cxx" or batch.sourcekind == "cc") then
-                            last_cxx_arguments = arguments
-                     end
-                end
-            end
-
-
-            table.join2(source_files, header_files, module_files)
-
-            arguments = table.unique(arguments)
-
-            local kind = ""
-            if batch.sourcekind then
-                kind = batch.sourcekind
-            else
-                kind = "unknown"
-            end
-
-            table.append(source_batches, { kind = kind, source_files = source_files, arguments = arguments})
-
-            ::continue4::
+        if cxx_source_files then
+            table.append(source_batches, { kind = cxx_source_batch.kind, source_files = cxx_source_files, arguments = cxx_arguments})
+        end
+        if c_source_files then
+            table.append(source_batches, { kind = c_source_batch.kind, source_files = c_source_files, arguments = c_arguments})
         end
 
         local target_file = target:targetfile() or ""
