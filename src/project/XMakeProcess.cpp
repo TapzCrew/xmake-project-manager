@@ -44,12 +44,9 @@ namespace XMakeProjectManager::Internal {
         m_process_was_canceled = false;
         m_future               = QFutureInterface<void> {};
 
-        auto _env = env;
-        _env.appendOrSet("XMAKE_THEME", "plain");
-
         ProjectExplorer::TaskHub::clearTasks(
             static_cast<const char *>(ProjectExplorer::Constants::TASK_CATEGORY_BUILDSYSTEM));
-        setupProcess(command, _env, capture_stdo);
+        setupProcess(command, env, capture_stdo);
 
         m_future.setProgressRange(0, 1);
 
@@ -112,6 +109,8 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProcess::setupProcess(const Command &command,
                                     const Utils::Environment &env,
                                     bool capture_stdo) -> void {
+        if (m_process) { m_process->interrupt(); }
+
         m_process = std::make_unique<Utils::QtcProcess>();
         connect(m_process.get(), &Utils::QtcProcess::done, this, &XMakeProcess::handleProcessDone);
 

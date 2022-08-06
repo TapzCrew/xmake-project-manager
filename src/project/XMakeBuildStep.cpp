@@ -39,10 +39,11 @@ namespace XMakeProjectManager::Internal {
         setCommandLineProvider([this] { return command(); });
         setEnvironmentModifier([this](Utils::Environment &env) {
             env.setupEnglishOutput();
-            env.appendOrSet("XMAKE_CONFIGDIR", buildDirectory().path());
+            env.appendOrSet("XMAKE_PROJECTDIR", project()->rootProjectDirectory().nativePath());
+            env.appendOrSet("XMAKE_CONFIGDIR", buildDirectory().nativePath());
             env.appendOrSet("XMAKE_THEME", "plain");
         });
-        setWorkingDirectoryProvider([this] { return project()->projectDirectory(); });
+        setWorkingDirectoryProvider([this] { return buildDirectory(); });
 
         connect(target(), &ProjectExplorer::Target::parsingFinished, this, &XMakeBuildStep::update);
     }
@@ -59,6 +60,7 @@ namespace XMakeProjectManager::Internal {
         build_targets_list->setFrameShadow(QFrame::Raised);
 
         auto tool_arguments = new QLineEdit { widget };
+        tool_arguments->setText(m_command_args);
 
         auto wrapper =
             Core::ItemViewFind::createSearchableWrapper(build_targets_list,
@@ -153,7 +155,7 @@ namespace XMakeProjectManager::Internal {
 
         cmd.addArg("-P");
 
-        cmd.addArg(QString { "%1" }.arg(project()->projectDirectory().path()));
+        cmd.addArg(QString { "%1" }.arg(project()->rootProjectDirectory().nativePath()));
 
         if (!m_target_name.isEmpty() &&
             m_target_name != QString::fromLatin1(Constants::Targets::ALL) &&

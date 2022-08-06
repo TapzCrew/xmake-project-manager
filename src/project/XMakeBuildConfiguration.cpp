@@ -5,6 +5,7 @@
 #include "XMakeBuildConfiguration.hpp"
 
 #include "buildoptions/XMakeBuildSettingsWidget.hpp"
+#include "utils/environment.h"
 
 #include <XMakeProjectConstant.hpp>
 
@@ -32,7 +33,8 @@ namespace XMakeProjectManager::Internal {
         setInitializer([this, target](const auto &info) {
             m_build_type = xmakeBuildType(info.typeName);
 
-            m_parameters = QString { "--mode=%1" }.arg(info.typeName);
+            m_parameters = m_parameters +=
+                QString { "-P %1" }.arg(project()->rootProjectDirectory().nativePath());
 
             auto *kit     = target->kit();
             auto kit_info = QtSupport::CppKitInfo { kit };

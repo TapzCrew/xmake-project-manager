@@ -130,7 +130,7 @@ namespace XMakeProjectManager::Internal {
                 &XMakeOutputParser::readStdo);
 
         auto file_finder = new Utils::FileInProjectFinder {};
-        file_finder->setProjectDirectory(project->projectDirectory());
+        file_finder->setProjectDirectory(project->rootProjectDirectory());
         file_finder->setProjectFiles(project->files(ProjectExplorer::Project::AllFiles));
 
         m_output_parser.setFileFinder(file_finder);
@@ -145,7 +145,10 @@ namespace XMakeProjectManager::Internal {
         m_src_dir   = source_path;
         m_build_dir = build_path;
 
+        m_env.setupEnglishOutput();
+        m_env.appendOrSet("XMAKE_PROJECTDIR", m_src_dir.nativePath());
         m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.nativePath());
+        // m_env.appendOrSet("XMAKE_THEME", "plain");
 
         m_output_parser.setSourceDirectory(source_path);
 
@@ -183,8 +186,6 @@ namespace XMakeProjectManager::Internal {
         m_src_dir = source_path;
 
         m_output_parser.setSourceDirectory(source_path);
-
-        m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.path());
 
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path);
         qCDebug(xmake_project_parser_log) << "Starting parser " << cmd.toUserOutput();

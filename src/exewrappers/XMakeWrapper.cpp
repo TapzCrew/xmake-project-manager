@@ -42,7 +42,8 @@ namespace XMakeProjectManager::Internal {
           m_id { Utils::Id::fromString(QUuid::createUuid().toString()) }, m_exe { std::move(path) },
           m_name { std::move(name) }, m_autorun { autorun }, m_auto_accept_requests {
               auto_accept_requests
-          } {}
+          } {
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -54,7 +55,8 @@ namespace XMakeProjectManager::Internal {
                                bool auto_accept_requests)
         : m_is_valid { path.exists() }, m_autodetected { auto_detected }, m_id { std::move(id) },
           m_exe { std::move(path) }, m_name { std::move(name) }, m_autorun { autorun },
-          m_auto_accept_requests { auto_accept_requests } {}
+          m_auto_accept_requests { auto_accept_requests } {
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -78,7 +80,9 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeWrapper::setExe(Utils::FilePath new_exe) -> void { m_exe = std::move(new_exe); }
+    auto XMakeWrapper::setExe(Utils::FilePath new_exe) -> void {
+        m_exe = std::move(new_exe);
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -103,13 +107,13 @@ namespace XMakeProjectManager::Internal {
         if (wipe) _options.emplace_back("-c");
         if (m_auto_accept_requests) _options.emplace_back("--yes");
         return { m_exe,
-                 Utils::FilePath::fromString(QDir::rootPath()), // source_directory,
+                 build_directory,
                  options_cat("f",
                              _options,
                              "-P",
-                             source_directory.toString(),
+                             source_directory.nativePath(),
                              "-o",
-                             build_directory.toString()) };
+                             build_directory.nativePath()) };
     }
 
     ////////////////////////////////////////////////////
@@ -118,8 +122,8 @@ namespace XMakeProjectManager::Internal {
         auto path = decompressIntrospectLuaIfNot();
 
         return { m_exe,
-                 Utils::FilePath::fromString(QDir::rootPath()), // source_directory,
-                 options_cat("lua", "-P", source_directory.toString(), path) };
+                 Utils::FilePath::fromString(QDir::rootPath()),
+                 options_cat("lua", "-P", source_directory.nativePath(), path) };
     }
 
     auto fileChecksum(const QString &fileName, QCryptographicHash::Algorithm hashAlgorithm)
