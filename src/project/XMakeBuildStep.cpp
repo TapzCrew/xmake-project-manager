@@ -139,6 +139,8 @@ namespace XMakeProjectManager::Internal {
             return Utils::CommandLine {};
         }();
 
+        qDebug() << m_target_name;
+
         if (!m_target_name.isEmpty() &&
             m_target_name == QString::fromLatin1(Constants::Targets::CLEAN)) {
             cmd.addArg("c");
@@ -155,7 +157,7 @@ namespace XMakeProjectManager::Internal {
 
         if (!m_target_name.isEmpty() &&
             m_target_name != QString::fromLatin1(Constants::Targets::ALL) &&
-            m_target_name == QString::fromLatin1(Constants::Targets::CLEAN))
+            m_target_name != QString::fromLatin1(Constants::Targets::CLEAN))
             cmd.addArg(m_target_name);
 
         return cmd;
