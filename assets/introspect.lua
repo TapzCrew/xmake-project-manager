@@ -152,14 +152,14 @@ function main ()
                                 kind = target:targetkind(),
                                 run_envs = runenvs,
                                 defined_in = defined_in,
-                                source_batches = source_batches,
-                                header_files = header_files,
+                                source_batches = source_batches or {},
+                                header_files = header_files or {},
                                 module_files = cxx_module_batch and cxx_module_batch.sourcefiles or {},
                                 target_file = target_file,
-                                packages = target:get("packages"),
-                                frameworks = target:get("frameworks"),
+                                packages = target:get("packages") or {},
+                                frameworks = target:get("frameworks") or {},
                                 use_qt = use_qt,
-                                group = target:get("group"),
+                                group = target:get("group") or "",
                                 autogendir = target:autogendir() } )
     end
 
@@ -168,11 +168,40 @@ function main ()
     output.targets = targets
 
     local options = {}
+
+    table.insert(options, {
+        name = "kind",
+        value = vformat("$(kind)"),
+        description = "target kind",
+        values = { "static", "shared" }
+    })
+
+    table.insert(options, {
+        name = "mode",
+        value = config.mode(),
+        description = "target mode",
+        values = config.get("allowedmodes")
+    })
+
+    table.insert(options, {
+        name = "plat",
+        value = config.plat(),
+        description = "target plat",
+        values = config.get("allowedplats")
+    })
+
+    table.insert(options, {
+        name = "arch",
+        value = config.arch(),
+        description = "target arch",
+        values = config.get("allowedarchs")
+    })
+
     for optionname, option in pairs(project.options()) do
         local value = option:value()
         local values = option:get("values")
         if value == true or value == false then
-            values = {"true", "false"}
+            values = {"true", "false", "yes", "no", "y", "n"}
         end
 
         table.insert(options, {

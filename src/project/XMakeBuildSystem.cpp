@@ -74,6 +74,8 @@ namespace XMakeProjectManager::Internal {
         }
         UNLOCK(false);
 
+        Q_EMIT errorOccurred();
+
         return false;
     }
 
@@ -92,6 +94,8 @@ namespace XMakeProjectManager::Internal {
         }
 
         UNLOCK(false);
+
+        Q_EMIT errorOccurred();
 
         return false;
     }
@@ -181,6 +185,8 @@ namespace XMakeProjectManager::Internal {
         if (result) return true;
 
         UNLOCK(false);
+
+        Q_EMIT errorOccurred();
 
         return false;
     }

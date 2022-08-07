@@ -4,6 +4,10 @@
 #pragma once
 
 #include "BuildOptionsModel.hpp"
+#include "qlineedit.h"
+#include "qpushbutton.h"
+#include "utils/fancylineedit.h"
+#include "utils/itemviews.h"
 #include "xmakeinfoparser/XMakeBuildOptionsParser.hpp"
 
 #include <projectexplorer/namedwidget.h>
@@ -26,14 +30,17 @@ namespace XMakeProjectManager::Internal {
         ~XMakeBuildSettingsWidget();
 
       private:
-        Ui::XMakeBuildSettingsWidget *ui;
-
-        Utils::CategorySortFilterModel m_options_filter;
-        Utils::ProgressIndicator m_progress_indicator;
+        Utils::CategorySortFilterModel *m_options_filter;
+        Utils::ProgressIndicator *m_progress_indicator;
         QTimer m_show_progress_timer;
 
-        BuildOptionsModel m_options_model;
+        Utils::TreeView *m_options_tree_view;
+        QLineEdit *m_parameters_line_edit;
+        Utils::FancyLineEdit *m_options_filter_line_edit;
+        // QPushButton *m_kit_configuration;
+        QPushButton *m_configure_button;
+        QPushButton *m_wipe_button;
 
-        BuildOptionsList m_base_options;
+        BuildOptionsModel m_options_model;
     };
 } // namespace XMakeProjectManager::Internal

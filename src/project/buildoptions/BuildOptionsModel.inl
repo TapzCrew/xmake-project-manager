@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "qnamespace.h"
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -15,11 +16,15 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    inline bool CancellableOption::locked() const noexcept { return m_locked; }
+    inline bool CancellableOption::locked() const noexcept {
+        return m_locked;
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    inline bool CancellableOption::changed() const noexcept { return m_changed; }
+    inline bool CancellableOption::changed() const noexcept {
+        return m_changed;
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -41,7 +46,9 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    inline const QString &CancellableOption::name() const noexcept { return m_current_value->name; }
+    inline const QString &CancellableOption::name() const noexcept {
+        return m_current_value->name;
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -85,7 +92,8 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     inline BuildOptionTreeItem::BuildOptionTreeItem(CancellableOption &option) noexcept
-        : m_option { &option } {}
+        : m_option { &option } {
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -97,14 +105,27 @@ namespace XMakeProjectManager::Internal {
             switch (role) {
                 case Qt::DisplayRole: return m_option->name();
                 case Qt::ToolTipRole: return toolTip();
-                case Qt::FontRole:
+                case Qt::FontRole: {
                     auto font = QFont {};
                     font.setBold(m_option->changed());
 
                     return font;
+                }
+                default: break;
             }
         } else if (column == 1) {
             switch (role) {
+                case Qt::CheckStateRole: {
+                    if (m_option->values().size() == 6 && m_option->values().contains("false") &&
+                        m_option->values().contains("true")) {
+                        const auto checked = m_option->value() == "yes" ||
+                                             m_option->value() == "y" ||
+                                             m_option->value() == "true";
+
+                        return (checked) ? Qt::Checked : Qt::Unchecked;
+                    }
+                    break;
+                }
                 case Qt::DisplayRole: [[fallthrough]];
                 case Qt::EditRole: return m_option->value();
                 case Qt::UserRole: return m_option->locked();
@@ -116,11 +137,13 @@ namespace XMakeProjectManager::Internal {
                             .arg(m_option->savedValue());
                     else
                         return toolTip();
-                case Qt::FontRole:
+                case Qt::FontRole: {
                     auto font = QFont {};
                     font.setBold(m_option->changed());
 
                     return font;
+                }
+                default: break;
             }
         }
 
@@ -132,9 +155,17 @@ namespace XMakeProjectManager::Internal {
     inline auto BuildOptionTreeItem::setData(int column,
                                              const QVariant &data,
                                              [[maybe_unused]] int role) noexcept -> bool {
-        QTC_ASSERT(column == 1, return false);
+        QTC_ASSERT(column >= 0 && column < 2, return Qt::NoItemFlags);
 
-        m_option->setValue(data.toString());
+        if (column == 0) return false;
+
+        auto value = data.toString();
+        if (role == Qt::CheckStateRole)
+            value = QString::fromLatin1(value.toInt() == 0 ? "no" : "yes");
+        else if (role != Qt::EditRole)
+            return false;
+
+        if (value != m_option->value()) m_option->setValue(value);
 
         return true;
     }
@@ -144,9 +175,21 @@ namespace XMakeProjectManager::Internal {
     inline auto BuildOptionTreeItem::flags(int column) const noexcept -> Qt::ItemFlags {
         QTC_ASSERT(column >= 0 && column < 2, return Qt::NoItemFlags);
 
-        if (column == 0) return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+        auto flags = Qt::ItemFlags { Qt::ItemIsEnabled };
 
-        return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+        if (column == 1) {
+            flags |= Qt::ItemIsSelectable;
+
+            if (!m_option->locked()) {
+                if (m_option->values().size() == 6 && m_option->values().contains("false") &&
+                    m_option->values().contains("true"))
+                    flags |= Qt::ItemIsUserCheckable;
+                else
+                    flags |= Qt::ItemIsEditable;
+            }
+        }
+
+        return flags;
     }
 
     ////////////////////////////////////////////////////

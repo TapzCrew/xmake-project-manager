@@ -5,6 +5,15 @@
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
+    inline BuildOption::BuildOption(QString _name,
+                                    QString _description,
+                                    QString _value,
+                                    QStringList _values)
+        : name { _name }, description { _description }, value { _value }, values { _values } {
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     inline auto BuildOption::xmakeArg() const noexcept -> QString {
         return QString { "--%1=%2" }.arg(name).arg(value);
     }

@@ -43,6 +43,9 @@ namespace XMakeProjectManager::Internal {
         ProjectExplorer::MakeInstallCommand
             makeInstallCommand(const Utils::FilePath &install_root) const override;
 
+      Q_SIGNALS:
+        void errorOccurred();
+
       private:
         void init();
 

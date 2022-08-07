@@ -3,17 +3,22 @@
 // found in the top-level of this distribution
 
 #include "BuildOptionsModel.hpp"
+#include "qcombobox.h"
 #include "qnamespace.h"
-#include "qstyleditemdelegate.h"
-#include "utils/treemodel.h"
+
 #include <algorithm>
 #include <iterator>
 
-#include <QComboBox>
-#include <QLineEdit>
+#include <utils/treemodel.h>
+
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QStyledItemDelegate>
 
 namespace XMakeProjectManager::Internal {
-    static constexpr auto LOCKED_OPTIONS = std::array<std::string_view, 2> { "mode", "qt" };
+    static constexpr auto LOCKED_OPTIONS =
+        std::array<std::string_view, 4> { "mode", "qt", "plat", "arch" };
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -92,43 +97,116 @@ namespace XMakeProjectManager::Internal {
     auto BuildOptionDelegate::createEditor(QWidget *parent,
                                            const QStyleOptionViewItem &option,
                                            const QModelIndex &index) const -> QWidget * {
-        const auto data      = index.data(Qt::EditRole);
-        const auto read_only = index.data(Qt::UserRole).toBool();
-        const auto values    = index.data(Qt::UserRole + 1).toStringList();
-        auto widget          = makeWidget(parent, data, values);
+        if (index.column() == 1) {
+            const auto data      = index.data(Qt::EditRole);
+            const auto read_only = index.data(Qt::UserRole).toBool();
+            const auto values    = index.data(Qt::UserRole + 1).toStringList();
 
-        if (widget) {
-            widget->setFocusPolicy(Qt::StrongFocus);
-            widget->setDisabled(read_only);
-        } else
-            widget = QStyledItemDelegate::createEditor(parent, option, index);
+            if (values.size() == 2 && values.contains("false") && values.contains("true")) {
+                auto edit = new QCheckBox { parent };
+                edit->setFocusPolicy(Qt::StrongFocus);
+                edit->setEnabled(read_only);
 
-        return widget;
-    }
+                return edit;
+            } else if (!values.empty()) {
+                const auto it = std::find(std::cbegin(values), std::cend(values), data);
+                QTC_ASSERT(it != std::cend(values), return nullptr);
 
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto BuildOptionDelegate::makeWidget(QWidget *parent,
-                                         const QVariant &data,
-                                         const QStringList &values) -> QWidget * {
-        const auto value = data.toString();
+                const auto current_index = std::distance(std::begin(values), it);
 
-        if (values.empty()) {
-            auto widget = new QLineEdit { parent };
-            widget->setText(value);
-            return widget;
+                auto edit = new QComboBox { parent };
+                edit->setAttribute(Qt::WA_MacSmallSize);
+                edit->setFocusPolicy(Qt::StrongFocus);
+                edit->setAutoFillBackground(true);
+                edit->addItems(values);
+
+                return edit;
+            } else {
+                auto edit = new QLineEdit { parent };
+                edit->setFocusPolicy(Qt::StrongFocus);
+
+                return edit;
+            }
         }
 
-        const auto it = std::find(std::cbegin(values), std::cend(values), value);
-        QTC_ASSERT(it != std::cend(values), return nullptr);
-
-        const auto current_index = std::distance(std::begin(values), it);
-
-        auto widget = new QComboBox { parent };
-        widget->addItems(values);
-        widget->setCurrentIndex(current_index);
-
-        return widget;
+        return QStyledItemDelegate::createEditor(parent, option, index);
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    void BuildOptionDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
+        using namespace QtLiterals;
+
+        if (index.column() == 1) {
+            const auto data   = index.data(Qt::EditRole);
+            const auto values = index.data(Qt::UserRole + 1).toStringList();
+
+            const auto value = data.toString();
+
+            if (values.size() == 6 && values.contains("false") && values.contains("true")) {
+                const auto checked = value == "yes" || value == "y" || value == "true";
+
+                auto edit = static_cast<QCheckBox *>(editor);
+                edit->setChecked(checked);
+                edit->setText(QString::fromLatin1((checked) ? "yes" : "no"));
+                return;
+            } else if (!values.empty()) {
+                auto edit = static_cast<QComboBox *>(editor);
+                edit->setCurrentText(value);
+                return;
+            } else {
+                auto edit = static_cast<QLineEdit *>(editor);
+                edit->setText(value);
+                return;
+            }
+        }
+
+        QStyledItemDelegate::setEditorData(editor, index);
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    void BuildOptionDelegate::setModelData(QWidget *editor,
+                                           QAbstractItemModel *model,
+                                           const QModelIndex &index) const {
+        if (index.column() == 1) {
+            const auto values = index.data(Qt::UserRole + 1).toStringList();
+
+            if (values.size() == 6 && values.contains("false") && values.contains("true")) {
+                auto edit = static_cast<QCheckBox *>(editor);
+                model->setData(index, edit->text(), Qt::EditRole);
+                return;
+            } else if (!values.empty()) {
+                auto edit = static_cast<QComboBox *>(editor);
+                model->setData(index, edit->currentText(), Qt::EditRole);
+                return;
+            } else {
+                auto edit = static_cast<QLineEdit *>(editor);
+                model->setData(index, edit->text(), Qt::EditRole);
+                return;
+            }
+        }
+
+        QStyledItemDelegate::setModelData(editor, model, index);
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    QSize BuildOptionDelegate::sizeHint([[maybe_unused]] const QStyleOptionViewItem &option,
+                                        [[maybe_unused]] const QModelIndex &index) const {
+        static auto height = -1;
+        if (height < 0) {
+            const auto setMaxSize = [](const QWidget &w) {
+                if (w.sizeHint().height() > height) height = w.sizeHint().height();
+            };
+
+            auto box = QComboBox {};
+            box.setAttribute(Qt::WA_MacSmallSize);
+
+            auto check = QCheckBox {};
+            setMaxSize(box);
+            setMaxSize(check);
+        }
+        return { 100, height };
+    }
 } // namespace XMakeProjectManager::Internal

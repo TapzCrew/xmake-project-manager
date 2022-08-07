@@ -49,11 +49,10 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto TargetParser::loadTarget(const QJsonValue &json_target, const Utils::FilePath &root)
         -> Target {
-        auto json_target_obj = json_target.toObject();
+        auto target = Target { json_target["name"].toString() };
 
-        auto target = Target { json_target_obj["name"].toString() };
+        auto kind = json_target["kind"].toString();
 
-        auto kind = json_target_obj["kind"].toString();
         if (kind == "binary") target.kind = Target::Kind::BINARY;
         else if (kind == "shared")
             target.kind = Target::Kind::SHARED;
@@ -79,7 +78,7 @@ namespace XMakeProjectManager::Internal {
         target.modules    = extractPathArray(json_modules, root);
         target.modules.removeDuplicates();
 
-        auto json_run_envs = json_target["run_envs"];
+        auto json_run_envs = json_target["run_envs"].toObject();
         auto set_run_envs  = json_run_envs["set"].toObject().toVariantMap();
 
         for (auto it = set_run_envs.begin(); it != set_run_envs.end(); ++it) {

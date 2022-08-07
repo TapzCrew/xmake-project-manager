@@ -12,6 +12,11 @@
 
 namespace XMakeProjectManager::Internal {
     struct BuildOption {
+        BuildOption(QString _name        = "",
+                    QString _description = "",
+                    QString value        = "",
+                    QStringList values   = {});
+
         QString name;
         QString description;
         QString value;

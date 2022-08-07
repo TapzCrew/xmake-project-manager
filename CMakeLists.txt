@@ -30,6 +30,7 @@ file(GLOB_RECURSE
     assets/*.lua
 )
 
+
 add_qtc_plugin(
     ${PROJECT_NAME}
     PLUGIN_DEPENDS
@@ -57,6 +58,7 @@ add_qtc_plugin(
         resources.qrc
 )
 
+target_compile_options(${PROJECT_NAME} PUBLIC "/fsanitize=address")
 target_include_directories(${PROJECT_NAME} PRIVATE src/)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
