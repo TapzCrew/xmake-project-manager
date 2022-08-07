@@ -47,6 +47,8 @@ namespace XMakeProjectManager::Internal {
         const auto parameters  = _parameters.split(" ");
 
         for (const auto &parameter : parameters) {
+            if (!parameter.contains("=")) continue;
+
             auto param_component = parameter.split("=");
 
             m_base_options.emplace_back(std::make_unique<BuildOption>(

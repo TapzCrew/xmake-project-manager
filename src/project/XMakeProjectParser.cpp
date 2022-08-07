@@ -148,7 +148,6 @@ namespace XMakeProjectManager::Internal {
         m_env.setupEnglishOutput();
         m_env.appendOrSet("XMAKE_PROJECTDIR", m_src_dir.nativePath());
         m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.nativePath());
-        // m_env.appendOrSet("XMAKE_THEME", "plain");
 
         m_output_parser.setSourceDirectory(source_path);
 
