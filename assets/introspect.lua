@@ -202,6 +202,7 @@ function main ()
         local values = option:get("values")
         if value == true or value == false then
             values = {"true", "false", "yes", "no", "y", "n"}
+            value = value and "yes" or "no"
         end
 
         table.insert(options, {
