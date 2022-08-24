@@ -3,6 +3,8 @@
 // found in the top-level of this distribution
 
 #include "XMakeProjectParser.hpp"
+#include "project/XMakeProcess.hpp"
+#include "qtmetamacros.h"
 
 #include <algorithm>
 
@@ -123,17 +125,9 @@ namespace XMakeProjectManager::Internal {
                                            Utils::Environment env,
                                            ProjectExplorer::Project *project)
         : m_xmake { xmake }, m_env { std::move(env) }, m_project_name { project->displayName() } {
-        connect(&m_process, &XMakeProcess::finished, this, &XMakeProjectParser::processFinished);
-        connect(&m_process,
-                &XMakeProcess::readyReadStandardOutput,
-                &m_output_parser,
-                &XMakeOutputParser::readStdo);
-
         auto file_finder = new Utils::FileInProjectFinder {};
         file_finder->setProjectDirectory(project->rootProjectDirectory());
         file_finder->setProjectFiles(project->files(ProjectExplorer::Project::AllFiles));
-
-        m_output_parser.setFileFinder(file_finder);
     }
 
     ////////////////////////////////////////////////////
@@ -149,14 +143,21 @@ namespace XMakeProjectManager::Internal {
         m_env.appendOrSet("XMAKE_PROJECTDIR", m_src_dir.nativePath());
         m_env.appendOrSet("XMAKE_CONFIGDIR", m_build_dir.nativePath());
 
-        m_output_parser.setSourceDirectory(source_path);
-
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->configure(m_src_dir, m_build_dir, args, wipe);
 
         m_pending_commands.enqueue(
-            std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path), true));
+            std::make_tuple(XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path),
+                            m_src_dir,
+                            true));
 
-        return m_process.run(cmd, m_env, m_project_name, false);
+        m_process = std::make_unique<XMakeProcess>();
+        connect(m_process.get(),
+                &XMakeProcess::finished,
+                this,
+                &XMakeProjectParser::processFinished);
+
+        m_process->run(cmd, m_env, m_project_name, source_path, false);
+        return true;
     }
 
     ////////////////////////////////////////////////////
@@ -174,8 +175,6 @@ namespace XMakeProjectManager::Internal {
         m_src_dir   = source_path;
         m_build_dir = build_path;
 
-        m_output_parser.setSourceDirectory(source_path);
-
         return parse(source_path);
     }
 
@@ -184,12 +183,17 @@ namespace XMakeProjectManager::Internal {
     auto XMakeProjectParser::parse(const Utils::FilePath &source_path) -> bool {
         m_src_dir = source_path;
 
-        m_output_parser.setSourceDirectory(source_path);
-
         auto cmd = XMakeTools::xmakeWrapper(m_xmake)->introspect(source_path);
         qCDebug(xmake_project_parser_log) << "Starting parser " << cmd.toUserOutput();
 
-        return m_process.run(cmd, m_env, m_project_name, true);
+        m_process = std::make_unique<XMakeProcess>();
+        connect(m_process.get(),
+                &XMakeProcess::finished,
+                this,
+                &XMakeProjectParser::processFinished);
+        m_process->run(cmd, m_env, m_project_name, source_path, true);
+
+        return true;
     }
 
     ////////////////////////////////////////////////////
@@ -337,61 +341,35 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeProjectParser::processFinished(int code, QProcess::ExitStatus status) -> void {
-        auto json_output = [this] {
-            auto json = QJsonDocument::fromJson(m_process.stdOut());
+    auto XMakeProjectParser::processFinished(int code, QString std_out) -> void {
+        if (code != 0) {
+            Q_EMIT parsingCompleted(false);
+            return;
+        }
+
+        auto json_output = [&] {
+            auto json = QJsonDocument::fromJson(std_out.toLatin1());
 
             auto str = QString::fromLocal8Bit(json.toJson());
 
             if (str.size()) return str;
 
-            return QString::fromLocal8Bit(m_process.stdOut());
+            return QString::fromLocal8Bit(std_out.toLatin1());
         }();
-
-        qCDebug(xmake_project_parser_log) << "Process " << m_process.currentCommand().toUserOutput()
-                                          << "finished with code: " << code << " status: " << status
-                                          << " output: " << json_output;
-
-        const auto error_or_warning_regex =
-            QRegularExpression { R"|(((error:)|(warning:))(.+)\n)|" };
-        const auto error_regex   = QRegularExpression { R"|(error:(.+)\n)|" };
-        const auto warning_regex = QRegularExpression { R"|(warning:(.+)\n)|" };
-
-        auto has_error_or_warnings = error_or_warning_regex.match(json_output);
-        auto error_or_warnings     = QString {};
-
-        auto has_errors   = error_regex.match(json_output).hasMatch();
-        auto has_warnings = warning_regex.match(json_output).hasMatch();
-        while (has_error_or_warnings.hasMatch()) {
-            error_or_warnings += has_error_or_warnings.captured(0);
-            json_output.erase(std::begin(json_output) + has_error_or_warnings.capturedStart(0),
-                              std::begin(json_output) + has_error_or_warnings.capturedEnd(0));
-
-            has_error_or_warnings = error_or_warning_regex.match(json_output);
-        }
-
-        if (code != 0 || status != QProcess::NormalExit || has_errors) {
-            const auto &data = m_process.stdOut();
-
-            Core::MessageManager::writeSilently(error_or_warnings);
-
-            m_output_parser.readStdo(error_or_warnings.toLocal8Bit());
-
-            Q_EMIT parsingCompleted(false);
-
-            return;
-        } else if (has_warnings) {
-            const auto &data = m_process.stdOut();
-
-            Core::MessageManager::writeSilently(error_or_warnings);
-
-            m_output_parser.readStdo(error_or_warnings.toLocal8Bit());
-        }
 
         if (m_pending_commands.isEmpty()) startParser(json_output.toLocal8Bit());
         else {
             auto args = m_pending_commands.dequeue();
-            m_process.run(std::get<0>(args), m_env, m_project_name, std::get<1>(args));
+            m_process = std::make_unique<XMakeProcess>();
+            connect(m_process.get(),
+                    &XMakeProcess::finished,
+                    this,
+                    &XMakeProjectParser::processFinished);
+            m_process->run(std::get<0>(args),
+                           m_env,
+                           m_project_name,
+                           std::get<1>(args),
+                           std::get<2>(args));
         }
     }
 

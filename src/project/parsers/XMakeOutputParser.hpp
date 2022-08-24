@@ -12,20 +12,20 @@ namespace XMakeProjectManager::Internal {
     class XMakeOutputParser final: public ProjectExplorer::OutputTaskParser {
         Q_OBJECT
       public:
-        XMakeOutputParser();
+        XMakeOutputParser(bool capture_stdio = false);
         ~XMakeOutputParser();
 
         XMakeOutputParser(XMakeOutputParser &&)      = delete;
         XMakeOutputParser(const XMakeOutputParser &) = delete;
 
-        XMakeOutputParser &operator=(XMakeOutputParser &&) = delete;
+        XMakeOutputParser &operator=(XMakeOutputParser &&)             = delete;
         XMakeOutputParser &operator=(const XMakeOutputParser &&) const = delete;
 
         Result handleLine(const QString &line, Utils::OutputFormat type) override;
 
-        void readStdo(const QByteArray &data);
-
         void setSourceDirectory(const Utils::FilePath &source_dir);
+
+        const QString &data() const noexcept;
 
       Q_SIGNALS:
         void new_search_dir_found(const Utils::FilePath &);
@@ -54,6 +54,9 @@ namespace XMakeProjectManager::Internal {
         int m_remaining_lines = 0;
 
         QStringList m_pending_lines;
+
+        bool m_capture_stdio;
+        QString m_data;
     };
 } // namespace XMakeProjectManager::Internal
 

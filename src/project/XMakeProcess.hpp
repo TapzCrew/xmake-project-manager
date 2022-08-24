@@ -4,64 +4,67 @@
 
 #pragma once
 
+#include "utils/filepath.h"
 #include <exewrappers/XMakeWrapper.hpp>
 
-#include <utils/qtcprocess.h>
+#include <utils/outputformatter.h>
 
-#include <QByteArray>
 #include <QElapsedTimer>
 #include <QFutureInterface>
-#include <QProcess>
-#include <QTimer>
+#include <QObject>
 
 #include <memory>
 
+QT_BEGIN_NAMESPACE
+template<class T>
+class QFutureWatcher;
+QT_END_NAMESPACE
+
+namespace Utils {
+    class QtcProcess;
+    class Environment;
+} // namespace Utils
+
 namespace XMakeProjectManager::Internal {
+    class XMakeOutputParser;
     class XMakeProcess final: public QObject {
         Q_OBJECT
 
       public:
         XMakeProcess();
+        ~XMakeProcess();
 
-        bool run(const Command &command,
+        void run(const Command &command,
                  const Utils::Environment &env,
                  const QString &project_name,
-                 bool capture_stdo = true);
+                 const Utils::FilePath &source_path,
+                 bool capture_stdio);
+        void stop();
 
-        QProcess::ProcessState state() const;
-
-        void reportCanceled();
-        void reportFinished();
-        void setProgressValue(int p);
-
-        const QByteArray &stdOut() const noexcept;
-
-        const Command &currentCommand() const noexcept;
+        [[nodiscard]] int lastExitCode() const noexcept;
 
       Q_SIGNALS:
         void started();
-        void finished(int exit_code, QProcess::ExitStatus exit_status);
-        void readyReadStandardOutput(const QByteArray &data);
+        void finished(int, QString);
 
       private:
-        void handleProcessFinished(int code, QProcess::ExitStatus status);
-        void handleProcessError(QProcess::ProcessError error);
-        void handleProcessDone();
-        void checkForCancelled();
-        void setupProcess(const Command &command, const Utils::Environment &env, bool capture_stdo);
+        void handleProcessDone(const Utils::ProcessResultData &result_data);
+        void
+            setupProcess(const Command &command, const Utils::Environment &env, bool capture_stdio);
 
         bool sanityCheck(const Command &command) const;
 
-        void processStandardOutput();
-        void processStandardError();
-
         std::unique_ptr<Utils::QtcProcess> m_process;
-        QFutureInterface<void> m_future;
-        bool m_process_was_canceled = false;
-        QTimer m_cancel_timer;
+        QFutureInterface<void> m_future_interface;
+        std::unique_ptr<QFutureWatcher<void>> m_future_watcher;
+
+        Utils::OutputFormatter m_parser;
         QElapsedTimer m_elapsed;
-        QByteArray m_stdo;
-        Command m_current_command;
+        int m_last_exit_code = 0;
+
+        XMakeOutputParser *m_output_parser;
+
+        QString m_data;
     };
 } // namespace XMakeProjectManager::Internal
 

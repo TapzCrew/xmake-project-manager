@@ -3,6 +3,7 @@
 // found in the top-level of this distribution
 
 #include "XMakeOutputParser.hpp"
+#include "projectexplorer/ioutputparser.h"
 
 #include <utils/fileutils.h>
 
@@ -11,7 +12,8 @@
 namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    XMakeOutputParser::XMakeOutputParser() = default;
+    XMakeOutputParser::XMakeOutputParser(bool capture_stdio) : m_capture_stdio { capture_stdio } {
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
@@ -31,15 +33,14 @@ namespace XMakeProjectManager::Internal {
         auto result = processErrors(line);
         if (result.status == ProjectExplorer::OutputTaskParser::Status::Done) return result;
 
-        return processWarnings(line);
-    }
+        result = processWarnings(line);
+        if (result.status == ProjectExplorer::OutputTaskParser::Status::NotHandled &&
+            m_capture_stdio) {
+            m_data += line;
+            result.status = ProjectExplorer::OutputTaskParser::Status::Done;
+        }
 
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    auto XMakeOutputParser::readStdo(const QByteArray &data) -> void {
-        const auto lines = QString::fromLocal8Bit(data).split('\n');
-
-        for (const auto &line : lines) handleLine(line, Utils::OutputFormat::StdOutFormat);
+        return result;
     }
 
     ////////////////////////////////////////////////////

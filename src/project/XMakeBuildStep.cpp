@@ -218,11 +218,6 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto XMakeBuildStep::setupOutputFormatter(Utils::OutputFormatter *formatter) -> void {
-        auto xmake_output_parser = new XMakeOutputParser {};
-        xmake_output_parser->setSourceDirectory(project()->projectDirectory());
-
-        formatter->addLineParser(xmake_output_parser); // formatter get ownship of parser
-
         const auto toolchain = QtSupport::CppKitInfo { kit() }.cxxToolChain;
         m_xmake_parser       = new XMakeBuildParser { (toolchain->displayName().contains("visual")
                                                            ? XMakeBuildParser::Type::MSVC

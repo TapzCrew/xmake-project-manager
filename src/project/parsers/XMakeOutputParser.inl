@@ -4,8 +4,10 @@
 
 #pragma once
 
-#include "XMakeBuildParser.hpp"
-
 namespace XMakeProjectManager::Internal {
-
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    inline const QString &XMakeOutputParser::data() const noexcept {
+        return m_data;
+    }
 } // namespace XMakeProjectManager::Internal

@@ -49,7 +49,7 @@ namespace XMakeProjectManager::Internal {
         XMakeProjectPluginPrivate(XMakeProjectPluginPrivate &&)      = delete;
         XMakeProjectPluginPrivate(const XMakeProjectPluginPrivate &) = delete;
 
-        XMakeProjectPluginPrivate &operator=(XMakeProjectPluginPrivate &&) = delete;
+        XMakeProjectPluginPrivate &operator=(XMakeProjectPluginPrivate &&)      = delete;
         XMakeProjectPluginPrivate &operator=(const XMakeProjectPluginPrivate &) = delete;
 
       private:
@@ -86,6 +86,8 @@ namespace XMakeProjectManager::Internal {
 
         ProjectExplorer::ProjectManager::registerProjectType<XMakeProject>(
             QLatin1String { Constants::Project::MIMETYPE });
+
+        auto a = 0;
 
         Core::FileIconProvider::registerIconOverlayForFilename(
             QLatin1String { Constants::Icons::XMAKE_FILE_OVERLAY },

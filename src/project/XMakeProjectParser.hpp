@@ -82,7 +82,7 @@ namespace XMakeProjectManager::Internal {
         };
 
         bool startParser(const QByteArray &data);
-        void processFinished(int code, QProcess::ExitStatus status);
+        void processFinished(int code, QString std_out);
 
         static ParserData *extractParserResults(const Utils::FilePath &source_dir,
                                                 XMakeInfoParser::Result &&parser_result);
@@ -94,7 +94,7 @@ namespace XMakeProjectManager::Internal {
                                                          const QtSupport::CppKitInfo &kit_info,
                                                          int id) const;
 
-        XMakeProcess m_process;
+        std::unique_ptr<XMakeProcess> m_process;
         bool m_configuring;
 
         QFuture<ParserData *> m_parser_future_result;
@@ -114,7 +114,7 @@ namespace XMakeProjectManager::Internal {
 
         QString m_project_name;
 
-        QQueue<std::tuple<Command, bool>> m_pending_commands;
+        QQueue<std::tuple<Command, Utils::FilePath, bool>> m_pending_commands;
     };
 } // namespace XMakeProjectManager::Internal
 
