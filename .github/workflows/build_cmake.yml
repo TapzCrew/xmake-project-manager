@@ -23,12 +23,12 @@ jobs:
             environment_script: "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
           }
         - {
-            name: "Ubuntu Latest GCC", artifact: "Linux-x64",
+            name: "Ubuntu Latest GCC", artifact: "Linux-GCCLatest-x64",
             os: ubuntu-latest,
             cc: "gcc", cxx: "g++"
           }
         - {
-            name: "Ubuntu Qt SDK GCC", artifact: "Linux-x64",
+            name: "Ubuntu Qt SDK GCC", artifact: "Linux-GCC10-x64",
             os: ubuntu-latest,
             cc: "gcc-10", cxx: "g++-10"
           }
