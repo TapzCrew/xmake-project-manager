@@ -155,7 +155,7 @@ namespace XMakeProjectManager::Internal {
         m_process->setWorkingDirectory(command.workDir());
         m_process->setEnvironment(env);
 
-        m_process->setStdOutLineCallback([&](const QString &s) {
+        m_process->setStdOutLineCallback([this, capture_stdio = capture_stdio](const QString &s) {
             m_parser.appendMessage(s, Utils::StdOutFormat);
 
             if (!capture_stdio)

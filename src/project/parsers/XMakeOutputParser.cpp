@@ -37,7 +37,6 @@ namespace XMakeProjectManager::Internal {
         if (result.status == ProjectExplorer::OutputTaskParser::Status::NotHandled &&
             m_capture_stdio) {
             m_data += line;
-            result.status = ProjectExplorer::OutputTaskParser::Status::Done;
         }
 
         return result;
