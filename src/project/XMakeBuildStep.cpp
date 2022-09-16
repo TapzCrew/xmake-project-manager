@@ -39,11 +39,10 @@ namespace XMakeProjectManager::Internal {
         setCommandLineProvider([this] { return command(); });
         setEnvironmentModifier([this](Utils::Environment &env) {
             env.setupEnglishOutput();
-            env.appendOrSet("XMAKE_PROJECTDIR", project()->rootProjectDirectory().nativePath());
             env.appendOrSet("XMAKE_CONFIGDIR", buildDirectory().nativePath());
             env.appendOrSet("XMAKE_THEME", "plain");
         });
-        setWorkingDirectoryProvider([this] { return buildDirectory(); });
+        setWorkingDirectoryProvider([this] { return project()->rootProjectDirectory(); });
 
         connect(target(), &ProjectExplorer::Target::parsingFinished, this, &XMakeBuildStep::update);
     }
@@ -152,10 +151,6 @@ namespace XMakeProjectManager::Internal {
             if (!m_command_args.isEmpty())
                 cmd.addArgs(m_command_args, Utils::CommandLine::RawType::Raw);
         }
-
-        cmd.addArg("-P");
-
-        cmd.addArg(QString { "%1" }.arg(project()->rootProjectDirectory().nativePath()));
 
         if (!m_target_name.isEmpty() &&
             m_target_name != QString::fromLatin1(Constants::Targets::ALL) &&
