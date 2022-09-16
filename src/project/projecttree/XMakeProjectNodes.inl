@@ -14,7 +14,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     inline auto XMakeFileNode::visibleAfterAddFileAction() const
-        -> Utils::optional<Utils::FilePath> {
+        -> std::optional<Utils::FilePath> {
         return filePath().pathAppended("xmake.build");
     }
 } // namespace XMakeProjectManager::Internal

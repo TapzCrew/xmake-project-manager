@@ -51,12 +51,12 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeBuildParser::extractProgress(QStringView line) -> Utils::optional<int> {
+    auto XMakeBuildParser::extractProgress(QStringView line) -> std::optional<int> {
         auto progress = m_progress_regex.match(line);
 
         if (progress.hasMatch()) return progress.captured(1).toInt();
 
-        return Utils::nullopt;
+        return std::nullopt;
     }
 
     ////////////////////////////////////////////////////

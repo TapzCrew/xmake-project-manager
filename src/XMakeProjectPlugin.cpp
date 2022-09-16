@@ -18,7 +18,7 @@
 #include <settings/tools/ToolsSettingsPage.hpp>
 #include <settings/tools/kitaspect/XMakeToolKitAspect.hpp>
 
-#include <coreplugin/fileiconprovider.h>
+#include <utils/fsengine/fileiconprovider.h>
 #include <coreplugin/icore.h>
 
 #include <projectexplorer/projectexplorerconstants.h>
@@ -89,7 +89,7 @@ namespace XMakeProjectManager::Internal {
 
         auto a = 0;
 
-        Core::FileIconProvider::registerIconOverlayForFilename(
+        Utils::FileIconProvider::registerIconOverlayForFilename(
             QLatin1String { Constants::Icons::XMAKE_FILE_OVERLAY },
             "xmake.lua");
 

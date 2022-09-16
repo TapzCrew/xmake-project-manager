@@ -86,7 +86,7 @@ namespace XMakeProjectManager::Internal {
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeWrapper::findTool() -> Utils::optional<Utils::FilePath> {
+    auto XMakeWrapper::findTool() -> std::optional<Utils::FilePath> {
         using namespace Utils;
 
         auto env = Environment::systemEnvironment();
@@ -94,7 +94,7 @@ namespace XMakeProjectManager::Internal {
         const auto exe_path = env.searchInPath(QLatin1String { Constants::TOOL_NAME });
         if (exe_path.exists()) return exe_path;
 
-        return Utils::nullopt;
+        return std::nullopt;
     }
 
     ////////////////////////////////////////////////////

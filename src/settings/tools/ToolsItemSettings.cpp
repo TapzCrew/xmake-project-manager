@@ -41,7 +41,7 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     auto ToolItemSettings::load(ToolTreeItem *item) -> void {
         if (item) {
-            m_current_id = Utils::nullopt;
+            m_current_id = std::nullopt;
 
             m_ui->xmake_name_line_edit->setDisabled(item->isAutoDetected());
             m_ui->xmake_name_line_edit->setText(item->name());
@@ -54,7 +54,7 @@ namespace XMakeProjectManager::Internal {
 
             m_current_id = item->id();
         } else
-            m_current_id = Utils::nullopt;
+            m_current_id = std::nullopt;
     }
 
     ////////////////////////////////////////////////////

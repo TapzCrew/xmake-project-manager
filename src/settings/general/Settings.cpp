@@ -40,7 +40,7 @@ namespace XMakeProjectManager::Internal {
         setLayouter([](auto *widget) {
             auto &settings = *Settings::instance();
 
-            Utils::Layouting::Column { Utils::Layouting::Stretch {} }.attachTo(widget);
+            Utils::Layouting::Column { Utils::Layouting::st }.attachTo(widget);
         });
     }
 

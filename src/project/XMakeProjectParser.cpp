@@ -61,28 +61,28 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     auto extractValueIfMatches(const QString &arg, const QStringList &candidates)
-        -> Utils::optional<QString> {
+        -> std::optional<QString> {
         for (const auto &flag : candidates)
             if (arg.startsWith(flag)) return arg.mid(flag.length());
 
-        return Utils::nullopt;
+        return std::nullopt;
     }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto extractInclude(const QString &arg) -> Utils::optional<ProjectExplorer::HeaderPath> {
+    auto extractInclude(const QString &arg) -> std::optional<ProjectExplorer::HeaderPath> {
         auto path = extractValueIfMatches(arg, { "-I", "/I", "-imsvc", "/imsvc" });
         if (path) return ProjectExplorer::HeaderPath::makeUser(*path);
 
         path = extractValueIfMatches(arg, { "-isystem ", "/external:I ", "-external:I " });
         if (path) return ProjectExplorer::HeaderPath::makeSystem(*path);
 
-        return Utils::nullopt;
+        return std::nullopt;
     }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto extractMacro(const QString &arg) -> Utils::optional<ProjectExplorer::Macro> {
+    auto extractMacro(const QString &arg) -> std::optional<ProjectExplorer::Macro> {
         auto define = extractValueIfMatches(arg, { "-D", "/D" });
         if (define) return ProjectExplorer::Macro::fromKeyValue(define->toLatin1());
 
@@ -91,7 +91,7 @@ namespace XMakeProjectManager::Internal {
         if (undef)
             return ProjectExplorer::Macro(undef->toLatin1(), ProjectExplorer::MacroType::Undefine);
 
-        return Utils::nullopt;
+        return std::nullopt;
     }
 
     ////////////////////////////////////////////////////
