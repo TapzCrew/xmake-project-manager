@@ -34,7 +34,8 @@ namespace XMakeProjectManager::Internal {
             m_build_type = xmakeBuildType(info.typeName);
 
             m_parameters = m_parameters +=
-                QString { "-P %1" }.arg(project()->rootProjectDirectory().nativePath());
+                QString { "-P %1 -m %2" }.arg(project()->rootProjectDirectory().nativePath(),
+                                              info.typeName);
 
             auto *kit     = target->kit();
             auto kit_info = QtSupport::CppKitInfo { kit };
