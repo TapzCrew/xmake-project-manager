@@ -11,8 +11,8 @@ import("core.tool.linker")
 import("core.base.json")
 import("private.action.run.make_runenvs")
 
-function parse_cxflags(argument, arguments)
-    if argument:startswith("/isystem") or
+function parse_cxflags(argument, arguments, i)
+    if argument:startswith("-isystem") or
        argument:startswith("/ifcSearchDir") or
        argument:startswith("/stdIfcDir") then
         return  argument .. " ".. arguments[i + 1], true
@@ -54,7 +54,7 @@ function main ()
                         end
 
                         cxx_arguments = cxx_arguments or {}
-                        cxx_argument, ignore_next_arg = parse_cxflags(argument, arguments)
+                        cxx_argument, ignore_next_arg = parse_cxflags(argument, arguments, i)
                         table.append(cxx_arguments, cxx_argument)
 
                         ::continue2::
@@ -80,7 +80,7 @@ function main ()
                         end
 
                         c_arguments = c_arguments or {}
-                        c_argument, ignore_next_arg = parse_cxflags(argument, arguments)
+                        c_argument, ignore_next_arg = parse_cxflags(argument, arguments, i)
                         table.append(c_arguments, c_argument)
 
                         ::continue2::
