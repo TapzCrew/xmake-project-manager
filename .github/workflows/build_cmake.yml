@@ -4,9 +4,9 @@ on: [push]
 
 env:
   PLUGIN_NAME: XMakeProjectManager
-  QT_VERSION: 6.3.1
-  QT_CREATOR_VERSION: 8.0.1
-  QT_CREATOR_SNAPSHOT: NO
+  QT_VERSION: 6.4.0
+  QT_CREATOR_VERSION: 9.0.0-rc1
+  QT_CREATOR_SNAPSHOT: latest
   CMAKE_VERSION: 3.22.5
   NINJA_VERSION: 1.11.0
 
@@ -155,7 +155,7 @@ jobs:
 
         # Save the path for other steps
         file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qt/${qt_dir_prefix}" qt_dir)
-        message("::set-output name=qt_dir::${qt_dir}")
+        execute_process(COMMAND echo "qt_dir=${qt_dir}" OUTPUT_FILE $ENV{GITHUB_OUTPUT})
 
         message("Downloading Qt to ${qt_dir}")
         function(downloadAndExtract url archive)
@@ -210,7 +210,7 @@ jobs:
 
         file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/qtcreator" qtc_dir)
         # Save the path for other steps
-        message("::set-output name=qtc_dir::${qtc_dir}")
+        execute_process(COMMAND echo "qtc_dir=${qtc_dir}" OUTPUT_FILE $ENV{GITHUB_OUTPUT})
 
         file(MAKE_DIRECTORY qtcreator)
 
@@ -222,6 +222,10 @@ jobs:
           execute_process(COMMAND
             ${CMAKE_COMMAND} -E tar xvf ../${package}.7z WORKING_DIRECTORY qtcreator)
         endforeach()
+
+    - name: debug
+      run: |
+         echo "${{steps.qt_creator.outputs.qtc_dir}}"
 
     - name: Configure & Build
       shell: cmake -P {0}
@@ -273,7 +277,7 @@ jobs:
         endif()
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       id: upload_artifact
       with:
         path: ./${{ env.PLUGIN_NAME }}-${{ env.QT_CREATOR_VERSION }}-${{ matrix.config.artifact }}.7z
