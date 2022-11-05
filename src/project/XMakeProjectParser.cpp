@@ -271,11 +271,11 @@ namespace XMakeProjectManager::Internal {
         if (kit_info.qtVersion) {
             qt_header_path = kit_info.qtVersion->headerPath();
 
-            if (kit_info.qtVersion->qtVersion().majorVersion == 6)
+            if (kit_info.qtVersion->qtVersion().majorVersion() == 6)
                 qt_version = Utils::QtMajorVersion::Qt6;
-            else if (kit_info.qtVersion->qtVersion().majorVersion == 5)
+            else if (kit_info.qtVersion->qtVersion().majorVersion() == 5)
                 qt_version = Utils::QtMajorVersion::Qt5;
-            else if (kit_info.qtVersion->qtVersion().majorVersion == 4)
+            else if (kit_info.qtVersion->qtVersion().majorVersion() == 4)
                 qt_version = Utils::QtMajorVersion::Qt4;
         }
 

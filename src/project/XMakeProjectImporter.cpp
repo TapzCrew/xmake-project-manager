@@ -3,6 +3,7 @@
 // found in the top-level of this distribution
 
 #include "XMakeProjectImporter.hpp"
+#include "utils/filepath.h"
 
 #include <QLoggingCategory>
 #include <QString>
@@ -17,11 +18,12 @@ namespace XMakeProjectManager::Internal {
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     XMakeProjectImporter::XMakeProjectImporter(const Utils::FilePath &path)
-        : QtSupport::QtProjectImporter { path } {}
+        : QtSupport::QtProjectImporter { path } {
+    }
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
-    auto XMakeProjectImporter::importCandidates() -> QStringList {
+    auto XMakeProjectImporter::importCandidates() -> Utils::FilePaths {
         // TODO
         return {};
     }

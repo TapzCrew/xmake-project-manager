@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "utils/filepath.h"
 #include <qtsupport/qtprojectimporter.h>
 
 #include <projectexplorer/buildinfo.h>
@@ -23,7 +24,7 @@ namespace XMakeProjectManager::Internal {
       public:
         explicit XMakeProjectImporter(const Utils::FilePath &path);
 
-        QStringList importCandidates() override;
+        Utils::FilePaths importCandidates() override;
 
       private:
         QList<void *> examineDirectory(const Utils::FilePath &import_path,
