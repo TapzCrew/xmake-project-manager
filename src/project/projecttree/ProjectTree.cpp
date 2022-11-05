@@ -119,12 +119,12 @@ namespace XMakeProjectManager::Internal {
             QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(QSize { 16, 16 });
         auto cpp_icon = QIcon {};
         cpp_icon.addPixmap(
-            Core::FileIconProvider::overlayIcon(pixmap,
+            Utils::FileIconProvider::overlayIcon(pixmap,
                                                 QIcon {
                                                     ProjectExplorer::Constants::FILEOVERLAY_CPP }));
         auto c_icon = QIcon {};
         c_icon.addPixmap(
-            Core::FileIconProvider::overlayIcon(pixmap,
+            Utils::FileIconProvider::overlayIcon(pixmap,
                                                 QIcon {
                                                     ProjectExplorer::Constants::FILEOVERLAY_C }));
 
@@ -162,7 +162,7 @@ namespace XMakeProjectManager::Internal {
             QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(QSize { 16, 16 });
         auto cpp_icon = QIcon {};
         cpp_icon.addPixmap(
-            Core::FileIconProvider::overlayIcon(pixmap,
+            Utils::FileIconProvider::overlayIcon(pixmap,
                                                 QIcon {
                                                     ProjectExplorer::Constants::FILEOVERLAY_CPP }));
         auto nodes = std::vector<std::unique_ptr<ProjectExplorer::FileNode>> {};
@@ -192,7 +192,7 @@ namespace XMakeProjectManager::Internal {
             QApplication::style()->standardIcon(QStyle::SP_FileIcon).pixmap(QSize { 16, 16 });
         auto icon = QIcon {};
         icon.addPixmap(
-            Core::FileIconProvider::overlayIcon(pixmap,
+            Utils::FileIconProvider::overlayIcon(pixmap,
                                                 QIcon {
                                                     ProjectExplorer::Constants::FILEOVERLAY_H }));
 

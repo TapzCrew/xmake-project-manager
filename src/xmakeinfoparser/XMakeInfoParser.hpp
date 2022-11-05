@@ -12,7 +12,7 @@
 
 #include <utils/filepath.h>
 #include <utils/fileutils.h>
-#include <utils/optional.h>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 class QByteArray;
@@ -33,7 +33,7 @@ namespace XMakeProjectManager::Internal {
 
             QStringList qml_import_paths;
 
-            Utils::optional<XMakeInfo> xmake_info;
+            std::optional<XMakeInfo> xmake_info;
         };
 
         Result parse(const QByteArray &data);

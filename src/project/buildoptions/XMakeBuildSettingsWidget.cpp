@@ -137,20 +137,18 @@ namespace XMakeProjectManager::Internal {
             using namespace Utils::Layouting;
 
             Grid xmake_configuration { m_options_filter_line_edit,
-                                       Break {},
+                                       br,
                                        m_parameters_line_edit,
-                                       Break {},
+                                       br,
                                        find_wrapper };
 
             Column { Form { build_dir_aspect },
-                     Column { Group { xmake_configuration,
-                                      Row { m_options_tree_view },
-                                      m_configure_button,
-                                      m_wipe_button
-
-                              } }
+                     Column { xmake_configuration,
+                              Row { m_options_tree_view },
+                              m_configure_button,
+                              m_wipe_button }
                          .setSpacing(0) }
-                .attachTo(details, false);
+                .attachTo(details);
         }
 
         auto bs = static_cast<XMakeBuildSystem *>(build_cfg->buildSystem());

@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include <coreplugin/fileiconprovider.h>
-
 #include <projectexplorer/projectnodes.h>
 
 #include <utils/fileutils.h>
+#include <utils/fsengine/fileiconprovider.h>
 
 namespace XMakeProjectManager::Internal {
     class XMakeProjectNode final: public ProjectExplorer::ProjectNode {
@@ -53,7 +52,7 @@ namespace XMakeProjectManager::Internal {
 
         bool showInSimpleTree() const override;
 
-        Utils::optional<Utils::FilePath> visibleAfterAddFileAction() const override;
+        std::optional<Utils::FilePath> visibleAfterAddFileAction() const override;
     };
 } // namespace XMakeProjectManager::Internal
 

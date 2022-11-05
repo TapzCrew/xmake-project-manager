@@ -11,7 +11,7 @@
 #include <QJsonValueRef>
 #include <QString>
 
-#include <utils/optional.h>
+#include <optional>
 
 namespace XMakeProjectManager::Internal {
     template<typename T>
@@ -41,7 +41,7 @@ namespace XMakeProjectManager::Internal {
     }
 
     template<typename T>
-    Utils::optional<T> get(const QJsonObject &obj, const QString &name);
+    std::optional<T> get(const QJsonObject &obj, const QString &name);
 
     inline auto extractArray(const QJsonArray &array) -> QStringList {
         auto output = QStringList {};
@@ -75,29 +75,29 @@ namespace XMakeProjectManager::Internal {
     }
 
     template<>
-    inline Utils::optional<QJsonArray> get<QJsonArray>(const QJsonObject &obj,
+    inline std::optional<QJsonArray> get<QJsonArray>(const QJsonObject &obj,
                                                        const QString &name) {
         if (obj.contains(name)) {
             auto child = obj[name];
             if (child.isArray()) return child.toArray();
         }
-        return Utils::nullopt;
+        return std::nullopt;
     }
 
     template<>
-    inline Utils::optional<QJsonObject> get<QJsonObject>(const QJsonObject &obj,
+    inline std::optional<QJsonObject> get<QJsonObject>(const QJsonObject &obj,
                                                          const QString &name) {
         if (obj.contains(name)) {
             auto child = obj[name];
             if (child.isObject()) return child.toObject();
         }
-        return Utils::nullopt;
+        return std::nullopt;
     }
 
     template<typename T, typename... Strings>
-    Utils::optional<T>
+    std::optional<T>
         get(const QJsonObject &obj, const QString &firstPath, const Strings &...path) {
         if (obj.contains(firstPath)) return get<T>(obj[firstPath].toObject(), path...);
-        return Utils::nullopt;
+        return std::nullopt;
     }
 } // namespace XMakeProjectManager::Internal

@@ -34,7 +34,7 @@ namespace XMakeProjectManager::Internal {
         void reportProgress(int progress);
 
       private:
-        Utils::optional<int> extractProgress(QStringView line);
+        std::optional<int> extractProgress(QStringView line);
         LinkSpecs addTask(ProjectExplorer::Task::TaskType type,
                           const QRegularExpressionMatch &match,
                           int file_cap_index,

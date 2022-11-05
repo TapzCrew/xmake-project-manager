@@ -5,7 +5,7 @@
 #pragma once
 
 #include <utils/id.h>
-#include <utils/optional.h>
+#include <optional>
 
 #include <QObject>
 #include <QString>
@@ -41,6 +41,6 @@ namespace XMakeProjectManager::Internal {
       private:
         std::unique_ptr<Ui::ToolItemSettings> m_ui;
 
-        Utils::optional<Utils::Id> m_current_id = Utils::nullopt;
+        std::optional<Utils::Id> m_current_id = std::nullopt;
     };
 } // namespace XMakeProjectManager::Internal

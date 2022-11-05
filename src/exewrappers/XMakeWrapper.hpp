@@ -11,7 +11,7 @@
 #include <utils/filepath.h>
 #include <utils/fileutils.h>
 #include <utils/id.h>
-#include <utils/optional.h>
+#include <optional>
 #include <utils/qtcprocess.h>
 
 #include <QFile>
@@ -93,7 +93,7 @@ namespace XMakeProjectManager::Internal {
         void setAutorun(bool value) noexcept;
         void setAutoAcceptRequests(bool value) noexcept;
 
-        static Utils::optional<Utils::FilePath> findTool();
+        static std::optional<Utils::FilePath> findTool();
 
         Command configure(const Utils::FilePath &source_directory,
                           const Utils::FilePath &build_directory,
