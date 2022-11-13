@@ -18,8 +18,8 @@
 #include <settings/tools/ToolsSettingsPage.hpp>
 #include <settings/tools/kitaspect/XMakeToolKitAspect.hpp>
 
-#include <utils/fsengine/fileiconprovider.h>
 #include <coreplugin/icore.h>
+#include <utils/fsengine/fileiconprovider.h>
 
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projectmanager.h>
@@ -87,8 +87,6 @@ namespace XMakeProjectManager::Internal {
         ProjectExplorer::ProjectManager::registerProjectType<XMakeProject>(
             QLatin1String { Constants::Project::MIMETYPE });
 
-        auto a = 0;
-
         Utils::FileIconProvider::registerIconOverlayForFilename(
             QLatin1String { Constants::Icons::XMAKE_FILE_OVERLAY },
             "xmake.lua");
@@ -96,6 +94,8 @@ namespace XMakeProjectManager::Internal {
         return true;
     }
 
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
     auto XMakeProjectPlugin::XMakeProjectPluginPrivateDeleter::operator()(
         XMakeProjectPluginPrivate *p) -> void {
         delete p;

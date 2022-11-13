@@ -3,6 +3,7 @@
 // found in the top-level of this distribution
 
 #include "XMakeBuildSystem.hpp"
+#include "utils/filepath.h"
 
 #include <project/XMakeBuildConfiguration.hpp>
 
@@ -254,7 +255,8 @@ namespace XMakeProjectManager::Internal {
 
         auto project = this->project();
 
-        auto project_info = model_manager->defaultProjectInfoForProject(project);
+        auto rcc          = Utils::FilePaths {};
+        auto project_info = model_manager->defaultProjectInfoForProject(project, rcc);
         project_info.importPaths.clear();
 
         for (const auto &import : m_parser.qmlImportPaths()) {
