@@ -1,6 +1,6 @@
 [![CI](https://github.com/TapzCrew/xmake-project-manager/actions/workflows/build_cmake.yml/badge.svg)](https://github.com/TapzCrew/xmake-project-manager/actions/workflows/build_cmake.yml)
 
-!! This project is abandonned, i'm using neovim now, so i will not maintain this plugin !!
+!! This project is abandonned, i'm using neovim now, so i will not maintain this plugin, feel free to fork it !!
 
 This is some basic XMake build system integration for QtCreator (based on [QtCreator meson plugin](https://github.com/qt-creator/qt-creator/tree/master/src/plugins/mesonprojectmanager) implementation).
 
